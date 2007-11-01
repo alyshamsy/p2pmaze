@@ -1,0 +1,121 @@
+
+This file describes how to build and run the MMO game benchmark in a unix like environment.
+
+1. BUILDING THE GAME FROM SOURCES
+
+First of all make sure all the needed libraries are installed:
+	- SDL - http://www.libsdl.org/
+	- SDL_net - http://www.libsdl.org/projects/SDL_net/
+	- OpenGL
+	- zlib (needed only if message compression is activated from src/Settings.h) - http://www.zlib.net/
+
+The script "sdl-config" must be present and return the valid path to the SDL header and libraries. Otherwise manually edit the CXXFLAGS and LDFLAGS in parameters in the Makefile. Also change the compiler name in the makefile if it is not g++.
+
+To build the game, chdir to the game root (the directory with the Makefile) and type "make" to build the game. Type "make master", "make server" or "make client" to build just one component. After the build succeds, in the base directory, there should be the following binary executable file: "server", "client" and "master". A new directory called "build" should have also been created. It contains the object files that were used to build the game components. This directory can be deleted after the build is finished.
+
+To remove all binary files just type "make clean". It will remove all executable files, all abject files from the "build" directory and any core dumps from the base directory (if any).
+
+
+2. BUILDING THE GAME MONITOR
+
+The game monitor is a tool to used for viewing information about the game and it is not requiered to run the benchmark. It is used to view the game status in a graphical way and to save statistics about the game.
+
+The game monitor requires the wxWidgets library (http://www.wxwidgets.org/) so first make sure it is installed. The script "wx-config" should return the path to the wxWidgets headers and libraries. If this is not the case, manually edit the file "src/gamemonitor/Makefile" to add the right paths. The ansi version of the wxWidgets library should be used (I haven't tested the unicode version but I don't think it works).
+
+To build the game monitor first change the directory to "src/gamemonitor", then type "make". This command will create a file called "gamemonitor" that is the executable for the application.
+
+3. APPLICATION PARAMETERS
+
+The sintax to run the master is:
+
+	./master <configuration file> <listen_port> [<log_file>]
+
+The log file is a binary file and it can get pretty big. The log file is needed when using the game monitor.
+
+The sintax for the server is:
+
+	./server <master_name_or_ip>:<master_port> <local_host_name_or_ip>:<listen_port>
+
+The sintax for the client is:
+
+	./client [options]* <server_name_or_ip>:<server_port>
+
+The options are:
+	--gui / --nogui	(start with/without graphical interface; default --nogui)
+	--size=1024x768 --bpp=32 --fullscreen (interface settings)
+	--disconnect_timeout=5 (timeout to disconnect from server in seconds)
+	--migration_timeout=5 (in seconds)
+	--debug_AI (display debugging information about AI)
+	--fps_average_param=0.99 (weight for the fps average)
+
+The game monitor can be run as follows:
+
+	/gamemonitor [--offline] <log_file>
+
+In online mode the gamemonitor displays the last data that was written in the log_file by the master. In offline mode the user uses a slider to select a point in game history when to display data.
+
+
+4. RUNNING THE BENCHMARK
+
+All machines involved in running the benchmark must have the same architecture (x86 and x86_64 is also ok). There is a script in the game directory called "run_demo.sh" as an example of runing the game. To run the game manually follow these steps:
+
+	- compile the game and the game monitor if needed:
+
+		make
+		cd src/gamemonitor
+		make
+		cd ../..
+
+	- If you want to run everything on the same machine open several consoles or run all command from the same console using the bash & operator to run them in background.
+
+	- first run the master:
+
+		./master config_demo.ini 7878 /tmp/master.log
+	( the master listens on port 7878 and writes the log in /tmp/master.log )
+
+	- second, run the servers (for example 2 servers)
+
+		./server localhost:7878 localhost:3000
+		./server localhost:7878 localhost:3001
+	(one server listens on port 3000 and the other on port 3001)
+
+	- run client without graphical interface:
+
+		./client localhost:3000
+
+	- run client with graphical interface:
+
+		./client --gui localhost:3000
+
+	- run client in fullscreen:
+
+		./client --size=1024x768 --fullscreen localhost:3001
+
+	- you can run the gamemonitor any time after starting the master
+
+		./src/gamemonitor/gamemonitor /tmp/master.log
+
+	- if the game is finished (the master stopped) you can run the monitoring tool in offline mode
+
+		./src/gamemonitor/gamemonitor --offline /tmp/master.log
+
+5. BUILDING WITH CMAKE
+
+	- change to the base game directory
+	- create a new directory called build and chdir to it
+
+		mkdir build
+		cd build
+
+	- generate a makefile with cmake
+
+		cmake ..
+
+	- compile the sources
+
+		make
+
+	- copy executable files to the base directory and chdir there
+
+		cp server .. && cp master .. && cp client ..
+		cd ..

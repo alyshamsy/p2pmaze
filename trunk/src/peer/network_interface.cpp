@@ -28,10 +28,16 @@ void network_interface::begin()
 
 void network_interface::send(const message& m, player_id destination)
 {
-  UDPpacket* packet = SDLNet_AllocPacket(1024);
+  UDPpacket* packet = SDLNet_AllocPacket(m.message_length);
   packet->address = destination;
   packet->len = m.message_length;
   memcpy(packet->data, &m, m.message_length);
+  if(m.type == MESSAGE_SC_REGULAR_UPDATE)
+    {
+      memcpy(packet->data +  sizeof(message_type), m.data.update.data, 
+	     m.message_length - sizeof(message_type));
+	     }
+ 
   SDLNet_UDP_Send(s, -1, packet);
   SDLNet_FreePacket(packet);
 }
@@ -53,6 +59,23 @@ int network_interface::socket_function(void* data)
 	    {
 	    case MESSAGE_CS_JOIN:
 	      interface->handler->do_join(*interface, m, packet->address);
+	      break;
+	    case MESSAGE_CS_MOVE_UP:
+	      cout << "Move Up" << endl;
+	      break;
+	    case MESSAGE_CS_MOVE_DOWN:
+	      cout << "Move down" << endl;
+	      break;
+	    case MESSAGE_CS_MOVE_LEFT:
+	      cout << "Move left" << endl;
+	      break;
+	    case MESSAGE_CS_MOVE_RIGHT:
+	      cout << "Move right" << endl;
+	    case MESSAGE_CS_USE:
+	      cout << "Use" << endl;
+	      break;
+	    case MESSAGE_CS_ATTACK:
+	      cout << "attack" << endl;
 	      break;
 	    default:
 	      cout << "Received " << packet->len << endl;

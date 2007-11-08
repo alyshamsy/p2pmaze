@@ -1,4 +1,5 @@
 #include <SDL_net.h>
+#include <SDL_thread.h>
 #include <iostream>
 #include <unistd.h>
 #include "network_interface.h"
@@ -15,7 +16,8 @@ int main()
   network.begin();
   while(true)
     {
-      sleep(10);
+      SDL_Delay(100);
+      handler.update(network);
     }
   SDLNet_Quit();
   return 0;

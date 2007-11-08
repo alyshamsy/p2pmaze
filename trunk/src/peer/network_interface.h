@@ -49,6 +49,8 @@ struct ok_join_data
 
 struct empty_message {};
 
+struct update_data {void* data;};
+
 struct message
 {
   message_type type;
@@ -56,6 +58,7 @@ struct message
   {
     empty_message nothing;
     ok_join_data initial_map_data;
+    update_data update;
   };
   message_data data;
   size_t message_length;

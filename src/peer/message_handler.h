@@ -15,6 +15,7 @@ class message_handler
   ~message_handler();
 
   void do_join(network_interface&, const message&, player_id);
+  void update(network_interface&);
   
  private:
   message_handler(const message_handler&);

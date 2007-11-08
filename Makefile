@@ -69,7 +69,7 @@ MASTER_BINARY_NAME = master
 
 ## Peer
 PEER_DIR = $(SOURCE_DIR)/peer
-PEER_SRCS := $(wildcard $(PEER_DIR)/*.cpp)
+PEER_SRCS := $(wildcard $(PEER_DIR)/*.cpp) $(SHARED_SOURCES)
 PEER_OBJS := $(patsubst $(SOURCE_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(PEER_SRCS))
 PEER_BINARY_NAME = peer
 

@@ -64,11 +64,11 @@ void message_handler::update(network_interface& out)
   s << 3;
   s << 0;
   s << 0;
-  s << 25;
-  s << 25;
+  s << 11;
+  s << 11;
   s << 50; s << 50; s << 0;
-  for(int x = 0; x < 25; x++)
-    for(int y = 0; y<25; y++)
+  for(int x = 0; x < 11; x++)
+    for(int y = 0; y<11; y++)
       {
 	s << cells[x][y].occupied;
 	s << cells[x][y].cell_type;

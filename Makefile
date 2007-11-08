@@ -23,6 +23,7 @@ LDFLAGS := `sdl-config --libs` -lSDL_net
 LDFLAGS_CLIENT = $(LDFLAGS) -lGL -lGLU
 LDFLAGS_SERVER = $(LDFLAGS)
 LDFLAGS_MASTER = $(LDFLAGS)
+LDFLAGS_PEER   = $(LDFLAGS)
 
 ## Source and binary files
 
@@ -66,6 +67,12 @@ SERVER_BINARY_NAME = server
 CLIENT_BINARY_NAME = client
 MASTER_BINARY_NAME = master
 
+## Peer
+PEER_DIR = $(SOURCE_DIR)/peer
+PEER_SRCS := $(wildcard $(PEER_DIR)/*.cpp)
+PEER_OBJS := $(patsubst $(SOURCE_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(PEER_SRCS))
+PEER_BINARY_NAME = peer
+
 ## Parameters for running
 
 MASTER_CONFIG_FILE = config_default.ini
@@ -77,7 +84,7 @@ HOST_NAME := `uname -n`
 ##
 ####################################################################################################
 
-all: client server master
+all: client server master peer
 
 ## Create directories for object files
 $(BUILD_DIR):
@@ -95,6 +102,7 @@ $(BUILD_DIR):
 	@mkdir $(BUILD_DIR)/graphics/texture
 	@mkdir $(BUILD_DIR)/graphics/font
 	@mkdir $(BUILD_DIR)/master
+	@mkdir $(BUILD_DIR)/peer
 
 ## Build client and server
 
@@ -112,6 +120,8 @@ server: $(BUILD_DIR) $(SERVER_OBJS)
 	$(CXX) $(LDFLAGS_SERVER) -o $(SERVER_BINARY_NAME) $(SERVER_OBJS)
 master: $(BUILD_DIR) $(MASTER_OBJS)
 	$(CXX) $(LDFLAGS_MASTER) -o $(MASTER_BINARY_NAME) $(MASTER_OBJS)
+peer:   $(BUILD_DIR) $(PEER_OBJS)
+	$(CXX) $(LDFLAGS_PEER)   -o $(PEER_BINARY_NAME)   $(PEER_OBJS)
 
 ## Target for generic cpp files
 $(BUILD_DIR)/%.o: $(SOURCE_DIR)/%.cpp

@@ -16,7 +16,8 @@ int main()
   network.begin();
   while(true)
     {
-      SDL_Delay(100);
+      SDL_Delay(200);
+      network.push_updates();
       handler.update(network);
     }
   SDLNet_Quit();

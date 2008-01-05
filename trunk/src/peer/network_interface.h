@@ -2,6 +2,8 @@
 #define __NETWORK_INTERFACE__
 
 #include <SDL_net.h>
+#include <SDL.h>
+#include <queue>
 
 enum message_type
     {
@@ -70,15 +72,22 @@ typedef IPaddress player_id;
 class network_interface
 {
  public:
+  typedef std::queue<std::pair<player_id, message> > message_queue;
+  
   network_interface(int listen_port);
   ~network_interface();
   void set_message_handler(message_handler*);
+  void push_updates();
   void begin();
   void send(const message&, player_id destination);
 
  private:
   network_interface(const network_interface&);
   network_interface& operator=(const network_interface&);
+  void enqueue_message(const message&, player_id destination);
+
+  message_queue received_messages;
+  SDL_mutex* received_queue_lock;
   message_handler* handler;
   int port;
   UDPsocket s;

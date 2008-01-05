@@ -18,6 +18,14 @@
 
 #include "ClientActionModule.h"
 
+#define CLIENT_DEBUG 0
+
+#if CLIENT_DEBUG
+#define cdprintf(frmt, ...) printf(frmt,##__VA_ARGS__)
+#else
+#define cdprintf(frmt, ...)
+#endif
+
 /***************************************************************************************************
 *
 * Constructor and setup methods
@@ -173,15 +181,16 @@ void ClientActionModule::action_PLAYING()
 
 	switch ( action )
 	{
-		case ATTACK: message_type = MESSAGE_CS_ATTACK; break;
-		case USE: message_type = MESSAGE_CS_USE; break;
-		case MOVE_UP: message_type = MESSAGE_CS_MOVE_UP; break;
-		case MOVE_DOWN: message_type = MESSAGE_CS_MOVE_DOWN; break;
-		case MOVE_LEFT: message_type = MESSAGE_CS_MOVE_LEFT; break;
-		case MOVE_RIGHT: message_type = MESSAGE_CS_MOVE_RIGHT; break;
+	case ATTACK: message_type = MESSAGE_CS_ATTACK; cdprintf("Attack\n"); break;
+	case USE: message_type = MESSAGE_CS_USE; cdprintf("Use\n"); break;
+	case MOVE_UP: message_type = MESSAGE_CS_MOVE_UP; cdprintf("Up\n"); break;
+	case MOVE_DOWN: message_type = MESSAGE_CS_MOVE_DOWN; cdprintf("Down\n"); break;
+	case MOVE_LEFT: message_type = MESSAGE_CS_MOVE_LEFT; cdprintf("Left\n");break;
+	case MOVE_RIGHT: message_type = MESSAGE_CS_MOVE_RIGHT; cdprintf("Right\n");break;
 		default:
 			return;
-	};
+			};
+	//message_type = MESSAGE_CS_MOVE_UP;
 	Message *m = new Message(message_type);
 	if ( m == NULL ) throw "Cannot send initial message";
 	m->setAddress(client_data->server_address);
@@ -340,6 +349,9 @@ void ClientActionModule::handle_REGULAR_UPDATE(Message *message)
 	*s >> client_data->xpos; *s >> client_data->ypos;
 	*s >> client_data->x1; *s >> client_data->y1;
 	*s >> client_data->x2; *s >> client_data->y2;
+
+	cdprintf("v1 (%d,%d) v2 (%d, %d) pos (%d, %d)\n", client_data->x1, client_data->y1, client_data->x2, 
+	       client_data->y2, client_data->xpos, client_data->ypos);
 
 	/* get player attributes */
 	*s >> client_data->life;

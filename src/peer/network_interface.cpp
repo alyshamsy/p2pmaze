@@ -4,13 +4,64 @@
 #include <iostream>
 #include "network_interface.h"
 #include "message_handler.h"
+#include <cassert>
 
 using namespace std;
 
 network_interface::network_interface(int listen_port):handler(NULL), 
 						      port(listen_port)
 {
-  
+  received_queue_lock = SDL_CreateMutex();
+}
+
+void network_interface::enqueue_message(const message& m, player_id player)
+{
+  SDL_mutexP(received_queue_lock);
+  received_messages.push(std::make_pair(player, m));
+  SDL_mutexV(received_queue_lock);
+}
+
+
+void network_interface::push_updates()
+{
+  assert(handler != NULL);
+  SDL_mutexP(received_queue_lock);
+  while(!received_messages.empty())
+    {
+      std::pair<player_id, message> m = received_messages.front();
+      received_messages.pop();
+       switch(m.second.type)
+	    {
+	    case MESSAGE_CS_JOIN:
+	      handler->do_join(*this, m.second, m.first);
+	      break;
+	    case MESSAGE_CS_MOVE_UP:
+	      handler->do_move_up(*this, m.first);
+	      break;
+	    case MESSAGE_CS_MOVE_DOWN:
+	      handler->do_move_down(*this, m.first);
+	    
+	      break;
+	    case MESSAGE_CS_MOVE_LEFT:
+	      handler->do_move_left(*this, m.first);
+	      break;
+	    case MESSAGE_CS_MOVE_RIGHT:
+	      handler->do_move_right(*this, m.first);
+	      break;
+	    case MESSAGE_CS_USE:
+	      cout << "Use" << endl;
+	      break;
+	    case MESSAGE_CS_ATTACK:
+	      cout << "attack" << endl;
+	      break;
+	    default:
+	      //cout << "Received " << packet->len << endl;
+	      break;
+	    }
+	    //cout << "Received " << packet->len << " bytes" << endl;
+      
+    }
+  SDL_mutexV(received_queue_lock);
 }
 
 network_interface::~network_interface() {}
@@ -55,22 +106,26 @@ int network_interface::socket_function(void* data)
       else if(packets_received > 0)
 	{
 	  message m = *reinterpret_cast<message*>(packet->data);
-	  switch(m.type)
+	  m.message_length = packet->len;
+	  /*switch(m.type)
 	    {
 	    case MESSAGE_CS_JOIN:
 	      interface->handler->do_join(*interface, m, packet->address);
 	      break;
 	    case MESSAGE_CS_MOVE_UP:
-	      cout << "Move Up" << endl;
+	      interface->handler->do_move_up(*interface, packet->address);
+	     
 	      break;
 	    case MESSAGE_CS_MOVE_DOWN:
-	      cout << "Move down" << endl;
+	      interface->handler->do_move_down(*interface, packet->address);
+	    
 	      break;
 	    case MESSAGE_CS_MOVE_LEFT:
-	      cout << "Move left" << endl;
+	      interface->handler->do_move_left(*interface, packet->address);
 	      break;
 	    case MESSAGE_CS_MOVE_RIGHT:
-	      cout << "Move right" << endl;
+	      interface->handler->do_move_right(*interface, packet->address);
+	      break;
 	    case MESSAGE_CS_USE:
 	      cout << "Use" << endl;
 	      break;
@@ -81,7 +136,8 @@ int network_interface::socket_function(void* data)
 	      cout << "Received " << packet->len << endl;
 	      break;
 	    }
-	  //cout << "Received " << packet->len << " bytes" << endl;
+	    //cout << "Received " << packet->len << " bytes" << endl;*/
+	  interface->enqueue_message(m, packet->address);
 	}
     }
 }

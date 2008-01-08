@@ -24,6 +24,7 @@ LDFLAGS_CLIENT = $(LDFLAGS) -lGL -lGLU
 LDFLAGS_SERVER = $(LDFLAGS)
 LDFLAGS_MASTER = $(LDFLAGS)
 LDFLAGS_PEER   = $(LDFLAGS)
+LDFLAGS_SUPERPEER = $(LDFLAGS)
 
 ## Source and binary files
 
@@ -73,6 +74,12 @@ PEER_SRCS := $(wildcard $(PEER_DIR)/*.cpp) $(SHARED_SOURCES)
 PEER_OBJS := $(patsubst $(SOURCE_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(PEER_SRCS))
 PEER_BINARY_NAME = peer
 
+## Superpeer
+SUPERPEER_DIR = $(SOURCE_DIR)/superpeer
+SUPERPEER_SRCS := $(wildcard $(SUPERPEER_DIR)/*.cpp) $(SHARED_SOURCES)
+SUPERPEER_OBJS := $(patsubst $(SOURCE_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SUPERPEER_SRCS))
+SUPERPEER_BINARY_NAME = superpeer
+
 ## Parameters for running
 
 MASTER_CONFIG_FILE = config_default.ini
@@ -84,7 +91,7 @@ HOST_NAME := `uname -n`
 ##
 ####################################################################################################
 
-all: client server master peer
+all: client server master peer superpeer
 
 ## Create directories for object files
 $(BUILD_DIR):
@@ -103,6 +110,7 @@ $(BUILD_DIR):
 	@mkdir $(BUILD_DIR)/graphics/font
 	@mkdir $(BUILD_DIR)/master
 	@mkdir $(BUILD_DIR)/peer
+	@mkdir $(BUILD_DIR)/superpeer
 
 ## Build client and server
 
@@ -122,6 +130,8 @@ master: $(BUILD_DIR) $(MASTER_OBJS)
 	$(CXX) $(LDFLAGS_MASTER) -o $(MASTER_BINARY_NAME) $(MASTER_OBJS)
 peer:   $(BUILD_DIR) $(PEER_OBJS)
 	$(CXX) $(LDFLAGS_PEER)   -o $(PEER_BINARY_NAME)   $(PEER_OBJS)
+superpeer: $(BUILD_DIR) $(SUPERPEER_OBJS)
+	$(CXX) $(LDFLAGS_SUPERPEER)   -o $(SUPERPEER_BINARY_NAME)   $(SUPERPEER_OBJS)
 
 ## Target for generic cpp files
 $(BUILD_DIR)/%.o: $(SOURCE_DIR)/%.cpp

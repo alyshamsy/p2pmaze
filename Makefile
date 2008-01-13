@@ -145,7 +145,7 @@ gamemonitor:
 .PHONY: clean
 clean:
 	-rm -f -R $(BUILD_DIR)
-	-rm -f $(SERVER_BINARY_NAME) $(CLIENT_BINARY_NAME) $(MASTER_BINARY_NAME)
+	-rm -f $(SERVER_BINARY_NAME) $(CLIENT_BINARY_NAME) $(MASTER_BINARY_NAME) $(SUPERPEER_BINARY_NAME)
 	-rm -f core*
 	-rm -f /tmp/master.log
 clean_all: clean

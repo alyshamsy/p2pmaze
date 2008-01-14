@@ -10,6 +10,7 @@ enum message_type
 
 struct take_control_message
 {
+  int length;
   message_type type;
   int seed;
   int width, height; // width and height are measured in regions
@@ -26,7 +27,12 @@ class load_balancer
   void peer_connected(int peer_socket);
   void peer_disconnected(int peer_socket);
  private:
+  void balance();
+  void send_all(int peer, void* message, int length);
+  int seed;
   int** world_regions;
   int world_width, world_height, region_width, region_height;
+
+  peer_list known_peers, running_peers;
 };
 #endif

@@ -129,6 +129,7 @@ static void superpeer_accept(int server_socket)
 	    {
 	      perror("error reading socket");
 	      FD_CLR(*i, &read_set);
+	      close(*i);
 	      sockets.erase(i);
 	      max_socket = *max_element(sockets.begin(), sockets.end());
 	    }

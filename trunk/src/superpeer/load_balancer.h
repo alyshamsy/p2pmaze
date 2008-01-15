@@ -28,7 +28,7 @@ class load_balancer
   void peer_disconnected(int peer_socket);
  private:
   void balance();
-  void send_all(int peer, void* message, int length);
+  void send_all(int peer, char* message, int length);
   int seed;
   int** world_regions;
   int world_width, world_height, region_width, region_height;

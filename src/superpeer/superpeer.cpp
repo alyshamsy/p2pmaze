@@ -6,34 +6,42 @@
 #include <netinet/in.h>
 #include <vector>
 #include <algorithm>
-
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
 static void start_peer();
 static void start_superpeer();
 
 int main()
 {
-  pid_t child_id = fork();
-  if(child_id == 0)
+    pid_t child_id = fork();
+    
+    if(child_id == 0)
     {
       start_peer();
     }
-  else if(child_id > 0)
+    
+    else if(child_id > 0)
     {
       start_superpeer();
     }
-  else
+
+    else
     {
       std::perror("Failed to fork peer process");
       exit(1);
     }
-  return 0;
+  
+    return 0;
 }
 
 static void start_peer()
 {
-  int ret = execl("peer", "peer", "localhost" "6886", NULL);
-  if(ret < 0)
+    int ret = execl("peer", "peer", "localhost" "6886", NULL);
+    
+    if(ret < 0)
     {
       std::perror("Could not execl peer process");
       exit(1);
@@ -42,32 +50,33 @@ static void start_peer()
 
 
 static void superpeer_accept(int server_socket);
+
 static void start_superpeer()
 {
-  int server_socket = socket(PF_INET, SOCK_STREAM, 0);
-  if(server_socket < 0)
+    int server_socket = socket(PF_INET, SOCK_STREAM, 0);
+    if(server_socket < 0)
     {
       perror("Failed to create server socket");
       exit(1);
     }
   
-  sockaddr_in socket_address;
-  socket_address.sin_family = AF_INET;
-  socket_address.sin_port = htons(6886);
-  socket_address.sin_addr.s_addr = INADDR_ANY;
-  if(bind(server_socket, (sockaddr*)&socket_address, sizeof(socket_address)) < 0)
+    sockaddr_in socket_address;
+    socket_address.sin_family = AF_INET;
+    socket_address.sin_port = htons(6886);
+    socket_address.sin_addr.s_addr = INADDR_ANY;
+    if(bind(server_socket, (sockaddr*)&socket_address, sizeof(socket_address)) < 0)
     {
       perror("Could not bind the server socket");
       exit(1);
     }
 
-  if(listen(server_socket, 10) < 0)
+    if(listen(server_socket, 10) < 0)
     {
       perror("Can't listen on the server socket");
       exit(1);
     }
 
-  superpeer_accept(server_socket);
+    superpeer_accept(server_socket);
   
 }
 
@@ -150,5 +159,3 @@ static void superpeer_accept(int server_socket)
     }
   
 }
-
-

@@ -39,6 +39,8 @@ int main(int argc, char * argv[])
   superpeer_port    = atoi (argv[2]);
   peer_port = superpeer_port;
 
+  peer_map ();
+
   init_peer ();
 
   peer_send ();
@@ -57,6 +59,12 @@ int main(int argc, char * argv[])
   }
   SDLNet_Quit();
   return 0;
+}
+
+static void
+peer_map ()
+{
+  // peer gets all map
 }
 
 static void
@@ -98,6 +106,35 @@ init_peer()
 static void
 peer_listen ()
 {
+  // get from superpeer the regions this peer is responsible for
+
+  int len = 0;
+  char buffer [1024];
+
+  len = recv (superpeer_socket, sizeof(buffer), 0);
+  if(len < 0)
+  {
+    perror("error reading socket");
+    //FD_CLR(*i, &read_set);
+    close(superpeer_socket);
+    //sockets.erase(i);
+    //max_socket = *max_element(sockets.begin(), sockets.end());
+  }
+  else if(length == 0)
+  {
+    //printf("%d disconnected\n", *i);
+    //FD_CLR(*i, &read_set);
+    close(superpeer_socket);
+    //sockets.erase(i);
+    //max_socket = *max_element(sockets.begin(), sockets.end());
+    //printf("%d sockets remain\n", sockets.size());
+  }
+ else
+ {
+   //printf("someone sent %d bytes\n", length);
+ }
+
+
 }
 
 static void

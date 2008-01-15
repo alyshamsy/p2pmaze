@@ -61,7 +61,7 @@ void load_balancer::balance()
   for(int i = 0; i < peer_count; i++)
     {
       take_control_message header;
-      int regions_to_control = regions_per_peer + (i==peer_count - 1 ? 0 : remainder);
+      int regions_to_control = regions_per_peer + (i==peer_count - 1 ? remainder : 0);
       int peer = known_peers[i];
       header.length = sizeof(take_control_message) + regions_to_control * sizeof(int);
       header.type = TAKE_CONTROL;

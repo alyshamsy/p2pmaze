@@ -19,9 +19,13 @@
 #include "network_interface.h"
 #include "message_handler.h"
 
+
+// Can you please use more descriptive names
+// for functions
 static void init_peer ();
 static void peer_listen ();
-static void peer_send ();
+static void peer_send ();  // send what?
+static void peer_map();
 
 
 int peer_socket, superpeer_socket;
@@ -32,7 +36,8 @@ int main(int argc, char * argv[])
 {
   if (argc < 2)
   {
-    perror ("Need to specify: peer address_of_peer port\n");
+    perror ("Need to specify: peer address_of_peer port\n"); // should not use perror here
+    // read documentation about how it works
     exit(1);
   }
   superpeer_address = argv[1];
@@ -106,7 +111,7 @@ init_peer()
 static void
 peer_listen ()
 {
-  // get from superpeer the regions this peer is responsible for
+  /*// get from superpeer the regions this peer is responsible for
 
   int len = 0;
   char buffer [1024];
@@ -133,7 +138,7 @@ peer_listen ()
  {
    //printf("someone sent %d bytes\n", length);
  }
-
+  */
 
 }
 
@@ -142,11 +147,14 @@ peer_send ()
 {
   // send data to super peer
   //
+
+  //Why is this data being sent to the super peer?
+  // this is what should be received
   char * msg = "blah";
   int len, bytes_sent;
 
   char * type = "1";
-  msg = "1:10x10:25x25:0,1,2";
+  msg = "1:10x10:25x25:0,1,2";   // thats not the message format we agreed to
   len = strlen (msg);
   bytes_sent = send (peer_socket, msg, len, 0);
 }

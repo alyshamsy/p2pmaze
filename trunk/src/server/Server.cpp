@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
 
 		/* initialize */
 		init(argc, argv);
-
+                /* Client module thrads */
 		/* create server modules */
 		/* MapManagementModule */
 		MapManagModule *mm_module = new MapManagModule(server_data, master_name, master_port);
@@ -141,13 +141,13 @@ int main(int argc, char *argv[])
 			+ server_data->regular_update_threads
 			+ server_data->world_update_threads );
 
-		/* IN */
+		/* Listen to Clients Thread (in) */
 		MessageModuleIN *in_module = new MessageModuleIN(local_port);
 		if ( in_module == NULL ) throw "Cannot creat input module";
 		SDL_Thread *in_thread = SDL_CreateThread(module_thread, (void*)in_module);
 		if ( in_thread == NULL ) throw "Cannot creat input thread";
 
-		/* OUT */
+		/* Send to Clients Thread (out) */
 		MessageModuleOUT *out_module = new MessageModuleOUT(in_module->getUDPsocket());
 		if ( out_module == NULL ) throw "Cannot creat output module";
 		SDL_Thread *out_thread = SDL_CreateThread(module_thread, (void*)out_module);
@@ -206,6 +206,20 @@ int main(int argc, char *argv[])
 		if ( stats_module == NULL ) throw "Cannot creat statistics module";
 		SDL_Thread *stats_thread = SDL_CreateThread(module_thread, (void*)stats_module);
 		if ( stats_thread == NULL ) throw "Cannot creat statistics thread";
+
+                /* Superpeer Module */
+
+                /* Listen to Superpeer thread (in) */
+                MessageModuleIN *spIN_module = new MessageModuleIN(local_port);
+		if ( spIN_module == NULL ) throw "Cannot creat input module";
+		SDL_Thread *spIN_thread = SDL_CreateThread(module_thread, (void*)spIN_module);
+		if ( spIN_thread == NULL ) throw "Cannot creat input thread";
+
+		/* Send to Superpeer Thread (out) */
+		MessageModuleOUT *spOUT_module = new MessageModuleOUT(spIN_module->getUDPsocket());
+		if ( spOUT_module == NULL ) throw "Cannot creat output module";
+		SDL_Thread *spOUT_thread = SDL_CreateThread(module_thread, (void*)spOUT_module);
+		if ( spOUT_thread == NULL ) throw "Cannot creat output thread";
 
 		/* User input loop (type 'quit' to exit) */
 		while ( true )

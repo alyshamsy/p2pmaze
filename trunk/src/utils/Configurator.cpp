@@ -141,6 +141,11 @@ char *Configurator::getAttribute(char *name)
 	return env[name];
 }
 
+std::string Configurator::getStringAttribute(char* name)
+{
+  return env[name];
+}
+
 int Configurator::getIntAttribute(char *name)
 {
 	int x = 0;

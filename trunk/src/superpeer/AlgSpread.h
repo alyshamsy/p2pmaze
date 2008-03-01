@@ -30,8 +30,8 @@
 
 struct SpRegion
 {
-	int x,y;	/* coordinates */
-	int p;		/* number of players */
+  int x,y;  /* coordinates */
+  int p;    /* number of players */
 };
 
 /***************************************************************************************************
@@ -43,25 +43,25 @@ struct SpRegion
 class AlgSpread : public BasicLoadBalance
 {
 private:
-	int **new_layout;		/* region layout after the load balancing */
-					/* int **layout in MasterModule class holds
-					the current layout */
-	SpRegion *sorted_regions;	/* regions sorted by number of players */
-	int players_per_server[MAX_SERVERS];	/* number of players on each server on each
-						step of the algorithm */
+  int **new_layout;   /* region layout after the load balancing */
+          /* int **layout in MasterModule class holds
+          the current layout */
+  SpRegion *sorted_regions; /* regions sorted by number of players */
+  int players_per_server[MAX_SERVERS];  /* number of players on each server on each
+            step of the algorithm */
 protected:
-	virtual int getLightestServer();
+  virtual int getLightestServer();
 
 public:
-	/* Constructor / Destructor */
-	AlgSpread(MapData &map_data, int port);
-	~AlgSpread();
+  /* Constructor / Destructor */
+  AlgSpread(MapData &map_data, int port);
+  ~AlgSpread();
 
-	/* Algorithm name */
-	virtual const char* getAlgorithm() { return "spread"; }
+  /* Algorithm name */
+  virtual const char* getAlgorithm() { return "spread"; }
 
-	/* Algorithm implementation */
-	bool balance();
+  /* Algorithm implementation */
+  bool balance();
 };
 
 #endif

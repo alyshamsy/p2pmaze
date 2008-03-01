@@ -36,4 +36,8 @@
 /* use 3DS models for client GUI instead of VRML models */
 #define __USE_3DS_GRAPHICS__
 
+// Defualts for the Master program:
+#define DEFAULT_MASTER_PORT 6666
+#define DEFAULT_CONFIG_FILE "config_demo.ini"
+
 #endif

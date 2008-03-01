@@ -58,8 +58,8 @@ using namespace std;
 class Module
 {
 public:
-	virtual ~Module() {};	/* to prevent a warning from g++ */
-	virtual void run() {};	/* all modules must have a run function */
+  virtual ~Module() {}; /* to prevent a warning from g++ */
+  virtual void run() {};  /* all modules must have a run function */
 };
 
 /* Macros */

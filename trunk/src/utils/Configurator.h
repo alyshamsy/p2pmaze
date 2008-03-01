@@ -20,6 +20,7 @@
 #define __CONFIGURATOR_H
 
 #include <map>
+#include <string>
 
 /* String comparator */
 struct StrCompare
@@ -52,6 +53,7 @@ public:
 	void add(char *name, char *value);
 	void addInt(char *name, int value);
 	char *getAttribute(char *name);
+        std::string getStringAttribute(char* name);
 	int getIntAttribute(char *name);
 	float getFloatAttribute(char *name);
 };

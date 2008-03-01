@@ -27,59 +27,59 @@
 
 MasterModule::MasterModule(MapData &map_data, int port)
 {
-	/* init member variables */
-	this->port = port;
-	finished = false;
-	log_file = NULL;
-	connected = 0;
-	nservers = 0;
-	memcpy(&this->map_data, &map_data, sizeof(MapData));
-	stats.player_migrations = 0;
-	stats.region_migrations = 0;
-	custom_quests = false;
+  /* init member variables */
+  this->port = port;
+  finished = false;
+  log_file = NULL;
+  connected = 0;
+  nservers = 0;
+  memcpy(&this->map_data, &map_data, sizeof(MapData));
+  stats.player_migrations = 0;
+  stats.region_migrations = 0;
+  custom_quests = false;
 
-	/* allocate memory for the message queue */
-	message_queue = new MessageQueue();
-	if ( message_queue == NULL )
-		throw "Cannot create message queue";
-	message_queue->setUnlimited();
+  /* allocate memory for the message queue */
+  message_queue = new MessageQueue();
+  if ( message_queue == NULL )
+    throw "Cannot create message queue";
+  message_queue->setUnlimited();
 
-	/* allocate memory for regions */
-	layout = new int*[map_data.nregx];
-	players_per_region = new int*[map_data.nregx];
-	if ( layout == NULL || players_per_region == NULL )
-		throw "Not enough memory for layout matrix";
-	for ( int i = 0; i < map_data.nregx; i++ )
-	{
-		layout[i] = new int[map_data.nregy];
-		players_per_region[i] = new int[map_data.nregy];
-		if ( layout[i] == NULL || players_per_region[i] == NULL )
-			throw "Not enough memory for layout matrix";
-		for ( int j = 0; j < map_data.nregy; j++ )
-		{
-			players_per_region[i][j] = 0;
-			layout[i][j] = 0;
-		}
-	}
+  /* allocate memory for regions */
+  layout = new int*[map_data.nregx];
+  players_per_region = new int*[map_data.nregx];
+  if ( layout == NULL || players_per_region == NULL )
+    throw "Not enough memory for layout matrix";
+  for ( int i = 0; i < map_data.nregx; i++ )
+  {
+    layout[i] = new int[map_data.nregy];
+    players_per_region[i] = new int[map_data.nregy];
+    if ( layout[i] == NULL || players_per_region[i] == NULL )
+      throw "Not enough memory for layout matrix";
+    for ( int j = 0; j < map_data.nregy; j++ )
+    {
+      players_per_region[i][j] = 0;
+      layout[i][j] = 0;
+    }
+  }
 
-	/* set time of first quest */
-	time_of_next_quest = SDL_GetTicks() + map_data.quest_first * 1000;
+  /* set time of first quest */
+  time_of_next_quest = SDL_GetTicks() + map_data.quest_first * 1000;
 }
 
 MasterModule::~MasterModule()
 {
-	/* free memory from the region matrices */
-	for ( int i = 0; i < map_data.nregx; i++ )
-	{
-		delete[] layout[i];
-		delete[] players_per_region[i];
-	}
-	delete[] layout;
-	delete[] players_per_region;
-	delete message_queue;
+  /* free memory from the region matrices */
+  for ( int i = 0; i < map_data.nregx; i++ )
+  {
+    delete[] layout[i];
+    delete[] players_per_region[i];
+  }
+  delete[] layout;
+  delete[] players_per_region;
+  delete message_queue;
 
-	/* free memory from the log file name */
-	if ( log_file != NULL ) free(log_file);
+  /* free memory from the log file name */
+  if ( log_file != NULL ) free(log_file);
 }
 
 /***************************************************************************************************
@@ -96,14 +96,14 @@ MasterModule::~MasterModule()
 
 int MasterModule::SDLNet_TCP_Recv(TCPsocket sock, void *data, int maxlen)
 {
-	int p = 0,r;
-	while ( p < maxlen )
-	{
-		r = ::SDLNet_TCP_Recv(sock, (void*)((char*)data + p), maxlen-p);
-		if ( r <= 0 ) return r;
-		p += r;
-	}
-	return p;
+  int p = 0,r;
+  while ( p < maxlen )
+  {
+    r = ::SDLNet_TCP_Recv(sock, (void*)((char*)data + p), maxlen-p);
+    if ( r <= 0 ) return r;
+    p += r;
+  }
+  return p;
 }
 
 /*
@@ -114,7 +114,7 @@ int MasterModule::SDLNet_TCP_Recv(TCPsocket sock, void *data, int maxlen)
 
 const char* MasterModule::getAlgorithm()
 {
-	return "static";
+  return "static";
 }
 
 /*
@@ -124,9 +124,9 @@ const char* MasterModule::getAlgorithm()
 
 IPaddress MasterModule::getHostAddress(TCPsocket s)
 {
-	IPaddress *ip = SDLNet_TCP_GetPeerAddress(s);
-	if ( ip == NULL ) throw "Cannot obtain IP for host";
-	return *ip;
+  IPaddress *ip = SDLNet_TCP_GetPeerAddress(s);
+  if ( ip == NULL ) throw "Cannot obtain IP for host";
+  return *ip;
 }
 
 /*
@@ -136,7 +136,7 @@ IPaddress MasterModule::getHostAddress(TCPsocket s)
 
 MessageQueue* MasterModule::getMessageQueue()
 {
-	return message_queue;
+  return message_queue;
 }
 
 /*
@@ -146,20 +146,20 @@ MessageQueue* MasterModule::getMessageQueue()
 
 void MasterModule::setCustomQuests(char *str)
 {
-	if ( str == NULL ) return;
+  if ( str == NULL ) return;
 
-	QuestPoint q;
-	char *p;
+  QuestPoint q;
+  char *p;
 
-	p = strtok(str, "() \t");
-	while ( p != NULL )
-	{
-		sscanf(p, "%d,%d,%d", &q.x,&q.y,&q.duration);
-		quest_points.insert(quest_points.end(), q);
-		p = strtok(NULL, "() \t");
-	}
+  p = strtok(str, "() \t");
+  while ( p != NULL )
+  {
+    sscanf(p, "%d,%d,%d", &q.x,&q.y,&q.duration);
+    quest_points.insert(quest_points.end(), q);
+    p = strtok(NULL, "() \t");
+  }
 
-	custom_quests = true;
+  custom_quests = true;
 }
 
 /***************************************************************************************************
@@ -170,210 +170,210 @@ void MasterModule::setCustomQuests(char *str)
 
 int MasterModule::handle_SM_STARTED(TCPsocket s)
 {
-	Uint32 message_type;
-	int r;
+  Uint32 message_type;
+  int r;
 
-	/* read UDP IP address */
-	IPaddress udp_addr;
-	int numreceived = SDLNet_TCP_Recv( s, &udp_addr, sizeof(IPaddress) );
-	if ( numreceived <= 0 ) return numreceived;
+  /* read UDP IP address */
+  IPaddress udp_addr;
+  int numreceived = SDLNet_TCP_Recv( s, &udp_addr, sizeof(IPaddress) );
+  if ( numreceived <= 0 ) return numreceived;
 
-	/* deny access if there are to many servers */
-	if ( connected > map_data.num_servers )
-	{
-		printf("Too many servers ... sending exit to server\n");
-		message_type = MS_EXIT;
-		SDLNet_TCP_Send( s, &message_type, sizeof(Uint32) );
-		return 1;
-	}
+  /* deny access if there are to many servers */
+  if ( connected > map_data.num_servers )
+  {
+    printf("Too many servers ... sending exit to server\n");
+    message_type = MS_EXIT;
+    SDLNet_TCP_Send( s, &message_type, sizeof(Uint32) );
+    return 1;
+  }
 
-	/* add a new server to the list */
-	sockets[nservers] = s;
-	ConnectedServerInfo *csi = &servers[nservers];
-	nservers++;
-	csi->tcp_connection = getHostAddress(s);
-	csi->udp_connection = udp_addr;
+  /* add a new server to the list */
+  sockets[nservers] = s;
+  ConnectedServerInfo *csi = &servers[nservers];
+  nservers++;
+  csi->tcp_connection = getHostAddress(s);
+  csi->udp_connection = udp_addr;
 
-	/* wait until all servers are conected */
-	if ( connected < map_data.num_servers ) return 1;
+  /* wait until all servers are conected */
+  if ( connected < map_data.num_servers ) return 1;
 
-	/* if all servers are connected create initial partition of map */
-	int n_hosts = socket_list.size();
-	int map_size = map_data.nregx * map_data.nregy;
-	int regions_per_host = map_size / n_hosts + ( ( map_size % n_hosts != 0 ) ? 1 : 0 );
-	int regions_for_this_host = regions_per_host;
-	int i,j,k = 0;
+  /* if all servers are connected create initial partition of map */
+  int n_hosts = socket_list.size();
+  int map_size = map_data.nregx * map_data.nregy;
+  int regions_per_host = map_size / n_hosts + ( ( map_size % n_hosts != 0 ) ? 1 : 0 );
+  int regions_for_this_host = regions_per_host;
+  int i,j,k = 0;
 
-	for ( i = 0; i < map_data.nregx; i++ )	/* for all regions */
-		for ( j = 0; j < map_data.nregy; j++ )
-		{
-			layout[i][j] = k;
-			regions_for_this_host--;
-			if ( regions_for_this_host == 0 )
-			{
-				k++;
-				regions_for_this_host = regions_per_host;
-			}
-		}
+  for ( i = 0; i < map_data.nregx; i++ )  /* for all regions */
+    for ( j = 0; j < map_data.nregy; j++ )
+    {
+      layout[i][j] = k;
+      regions_for_this_host--;
+      if ( regions_for_this_host == 0 )
+      {
+        k++;
+        regions_for_this_host = regions_per_host;
+      }
+    }
 
-	/* send the layout of regions to all servers */
-	/*
-		- since this is the first message sent to the server, there are no synchronization
-		problems so there is no need to put the message in the MessageQueue
-	*/
-	for ( k = 0; k < nservers; k++ )
-	{
-		csi = &servers[k];
-		message_type = MS_CONFIG;
-		r = SDLNet_TCP_Send( sockets[k], &message_type, sizeof(Uint32) );
-		if ( r < (int)sizeof(Uint32) ) throw "Error sending map to server";
-		r = SDLNet_TCP_Send( sockets[k], &map_data, sizeof(MapData) );
-		if ( r < (int)sizeof(MapData) ) throw "Error sending map to server";
-		for ( i = 0; i < map_data.nregx; i++ )
-			for ( j = 0; j < map_data.nregy; j++ )
-			{
-				r = SDLNet_TCP_Send( sockets[k],
-					&servers[layout[i][j]].udp_connection,
-					sizeof(IPaddress) );
-				if ( r < (int)sizeof(IPaddress) )
-					throw "Error sending map to server";
-			}
-	}
+  /* send the layout of regions to all servers */
+  /*
+    - since this is the first message sent to the server, there are no synchronization
+    problems so there is no need to put the message in the MessageQueue
+  */
+  for ( k = 0; k < nservers; k++ )
+  {
+    csi = &servers[k];
+    message_type = MS_CONFIG;
+    r = SDLNet_TCP_Send( sockets[k], &message_type, sizeof(Uint32) );
+    if ( r < (int)sizeof(Uint32) ) throw "Error sending map to server";
+    r = SDLNet_TCP_Send( sockets[k], &map_data, sizeof(MapData) );
+    if ( r < (int)sizeof(MapData) ) throw "Error sending map to server";
+    for ( i = 0; i < map_data.nregx; i++ )
+      for ( j = 0; j < map_data.nregy; j++ )
+      {
+        r = SDLNet_TCP_Send( sockets[k],
+          &servers[layout[i][j]].udp_connection,
+          sizeof(IPaddress) );
+        if ( r < (int)sizeof(IPaddress) )
+          throw "Error sending map to server";
+      }
+  }
 
-	return 1;
+  return 1;
 }
 
 int MasterModule::handle_SM_GIVE_PLAYER(TCPsocket s)
 {
-	Uint32 len;
-	int x,y;
-	char *buffer;
+  Uint32 len;
+  int x,y;
+  char *buffer;
 
-	/* receive data */
-	if ( SDLNet_TCP_Recv( s, &len, sizeof(Uint32) ) <= 0
-		|| ( ( buffer = new char[len] ) == NULL )
-		|| SDLNet_TCP_Recv( s, buffer, len ) <= 0
-		|| SDLNet_TCP_Recv( s, &x, sizeof(int) ) <= 0
-		|| SDLNet_TCP_Recv( s, &y, sizeof(int) ) <= 0 )
-	{
-		printf("[WARNING] Cannot receive client. Client lost\n");
-		return 0;
-	}
+  /* receive data */
+  if ( SDLNet_TCP_Recv( s, &len, sizeof(Uint32) ) <= 0
+    || ( ( buffer = new char[len] ) == NULL )
+    || SDLNet_TCP_Recv( s, buffer, len ) <= 0
+    || SDLNet_TCP_Recv( s, &x, sizeof(int) ) <= 0
+    || SDLNet_TCP_Recv( s, &y, sizeof(int) ) <= 0 )
+  {
+    printf("[WARNING] Cannot receive client. Client lost\n");
+    return 0;
+  }
 
-	/* find the address of the next server */
-	TCPsocket next;
-	int rx,ry;
-	rx = x / map_data.regx;
-	ry = y / map_data.regy;
-	if ( rx < 0 || ry < 0 || rx >= map_data.nregx || ry >= map_data.nregy )
-	{
-		printf("[WARNING] Coordinates for client are out of bounds\n");
-		return 1;
-	}
-	next = sockets[layout[rx][ry]];
+  /* find the address of the next server */
+  TCPsocket next;
+  int rx,ry;
+  rx = x / map_data.regx;
+  ry = y / map_data.regy;
+  if ( rx < 0 || ry < 0 || rx >= map_data.nregx || ry >= map_data.nregy )
+  {
+    printf("[WARNING] Coordinates for client are out of bounds\n");
+    return 1;
+  }
+  next = sockets[layout[rx][ry]];
 
-	/* send the player to the next server */
-	Message *m = new MasterMessageWithBuffer(MS_TAKE_PLAYER, buffer, len, next);
-	if ( m == NULL )
-	{
-		printf("[WARNING] Failed to transfer player. Player lost\n");
-		delete buffer;
-		return 0;
-	}
-	message_queue->putMessage(m);
+  /* send the player to the next server */
+  Message *m = new MasterMessageWithBuffer(MS_TAKE_PLAYER, buffer, len, next);
+  if ( m == NULL )
+  {
+    printf("[WARNING] Failed to transfer player. Player lost\n");
+    delete buffer;
+    return 0;
+  }
+  message_queue->putMessage(m);
 
-	stats.player_migrations ++;
-	return 1;
+  stats.player_migrations ++;
+  return 1;
 }
 
 int MasterModule::handle_SM_MOVE_REGION(TCPsocket s)
 {
-	Uint32 len;
-	int x,y;
-	char *buffer;
-	int players_in_region;
+  Uint32 len;
+  int x,y;
+  char *buffer;
+  int players_in_region;
 
-	/* receive data */
-	if ( SDLNet_TCP_Recv( s, &len, sizeof(Uint32) ) <= 0
-		|| ( ( buffer = new char[len] ) == NULL )
-		|| SDLNet_TCP_Recv( s, buffer, len ) <= 0
-		|| SDLNet_TCP_Recv( s, &x, sizeof(int) ) <= 0
-		|| SDLNet_TCP_Recv( s, &y, sizeof(int) ) <= 0 )
-			throw "Cannot receive region";
+  /* receive data */
+  if ( SDLNet_TCP_Recv( s, &len, sizeof(Uint32) ) <= 0
+    || ( ( buffer = new char[len] ) == NULL )
+    || SDLNet_TCP_Recv( s, buffer, len ) <= 0
+    || SDLNet_TCP_Recv( s, &x, sizeof(int) ) <= 0
+    || SDLNet_TCP_Recv( s, &y, sizeof(int) ) <= 0 )
+      throw "Cannot receive region";
 
-	/* find the address of the next server */
-	TCPsocket next;
-	if ( x < 0 || y < 0 || x >= map_data.nregx || y >= map_data.nregy )
-	{
-		printf("Region coordinates %d,%d ( map size: %dx%d )\n", x,y,
-			map_data.nregx, map_data.nregy);
-		throw "Coordinates for region are out of bounds";
-	}
-	next = sockets[layout[x][y]];
+  /* find the address of the next server */
+  TCPsocket next;
+  if ( x < 0 || y < 0 || x >= map_data.nregx || y >= map_data.nregy )
+  {
+    printf("Region coordinates %d,%d ( map size: %dx%d )\n", x,y,
+      map_data.nregx, map_data.nregy);
+    throw "Coordinates for region are out of bounds";
+  }
+  next = sockets[layout[x][y]];
 
-	/* get the number of players in this region */
-	players_in_region = *((int*)( buffer + (len - sizeof(int)) ));
+  /* get the number of players in this region */
+  players_in_region = *((int*)( buffer + (len - sizeof(int)) ));
 
-	/* send the player to the next server */
-	Message *m = new MasterMessageWithBuffer(MS_TAKE_REGION, buffer, len, next);
-	if ( m == NULL )
-	{
-		delete buffer;
-		throw "Failed to transfer region";
-	}
-	message_queue->putMessage(m);
+  /* send the player to the next server */
+  Message *m = new MasterMessageWithBuffer(MS_TAKE_REGION, buffer, len, next);
+  if ( m == NULL )
+  {
+    delete buffer;
+    throw "Failed to transfer region";
+  }
+  message_queue->putMessage(m);
 
-	stats.player_migrations += players_in_region;
-	stats.region_migrations ++;
-	return 1;
+  stats.player_migrations += players_in_region;
+  stats.region_migrations ++;
+  return 1;
 }
 
 int MasterModule::handle_SM_STATISTICS(TCPsocket s)
 {
-	ServerStatistics ss;
-	int ii,jj,n,i;
-	IPaddress addr;
+  ServerStatistics ss;
+  int ii,jj,n,i;
+  IPaddress addr;
 
-	/* receive data */
-	if ( SDLNet_TCP_Recv( s, &ss, sizeof(ServerStatistics) ) <= 0 )
-	{
-		printf("[WARNING] Cannot receive statistics\n");
-		return 0;
-	}
+  /* receive data */
+  if ( SDLNet_TCP_Recv( s, &ss, sizeof(ServerStatistics) ) <= 0 )
+  {
+    printf("[WARNING] Cannot receive statistics\n");
+    return 0;
+  }
 
-	/* receive regions */
-	for ( i = 0; i < ss.number_of_regions; i++ )
-	{
-		/* receive data */
-		if ( SDLNet_TCP_Recv( s, &ii, sizeof(int) ) <= 0
-			|| SDLNet_TCP_Recv( s, &jj, sizeof(int) ) <= 0
-			|| SDLNet_TCP_Recv( s, &n, sizeof(int) ) <= 0 )
-		{
-			printf("[WARNING] Cannot receive statistics\n");
-			return 0;
-		}
+  /* receive regions */
+  for ( i = 0; i < ss.number_of_regions; i++ )
+  {
+    /* receive data */
+    if ( SDLNet_TCP_Recv( s, &ii, sizeof(int) ) <= 0
+      || SDLNet_TCP_Recv( s, &jj, sizeof(int) ) <= 0
+      || SDLNet_TCP_Recv( s, &n, sizeof(int) ) <= 0 )
+    {
+      printf("[WARNING] Cannot receive statistics\n");
+      return 0;
+    }
 
-		/* verify data */
-		if ( ii < 0 || jj < 0 || ii >= map_data.nregx || jj >= map_data.nregy )
-		{
-			printf("[WARNING] Invalid statistics (region out of bounds)\n");
-			continue;
-		}
+    /* verify data */
+    if ( ii < 0 || jj < 0 || ii >= map_data.nregx || jj >= map_data.nregy )
+    {
+      printf("[WARNING] Invalid statistics (region out of bounds)\n");
+      continue;
+    }
 
-		/* update data */
-		players_per_region[ii][jj] = n;
-	}
+    /* update data */
+    players_per_region[ii][jj] = n;
+  }
 
-	/* update statistics field for this server */
-	addr = getHostAddress(s);
-	for ( i = 0; i < nservers; i++ )
-		if ( equalIP(addr, servers[i].tcp_connection) )
-		{
-			memcpy(&servers[i].statistics, &ss, sizeof(ServerStatistics));
-			break;
-		}
+  /* update statistics field for this server */
+  addr = getHostAddress(s);
+  for ( i = 0; i < nservers; i++ )
+    if ( equalIP(addr, servers[i].tcp_connection) )
+    {
+      memcpy(&servers[i].statistics, &ss, sizeof(ServerStatistics));
+      break;
+    }
 
-	return 1;
+  return 1;
 }
 
 /***************************************************************************************************
@@ -386,25 +386,25 @@ int MasterModule::handle_SM_STATISTICS(TCPsocket s)
 
 int MasterModule::receiveMessage(TCPsocket s)
 {
-	int numreceived;
-	Uint32 message_type;
+  int numreceived;
+  Uint32 message_type;
 
-	/* receive message_type */
-	numreceived = SDLNet_TCP_Recv( s, &message_type, sizeof(Uint32) );
-	if ( numreceived <= 0 ) return numreceived;
+  /* receive message_type */
+  numreceived = SDLNet_TCP_Recv( s, &message_type, sizeof(Uint32) );
+  if ( numreceived <= 0 ) return numreceived;
 
-	/* get the whole message depending on its type */
-	switch ( message_type )
-	{
-		case SM_STARTED: numreceived = handle_SM_STARTED(s); break;
-		case SM_GIVE_PLAYER: numreceived = handle_SM_GIVE_PLAYER(s); break;
-		case SM_MOVE_REGION: numreceived = handle_SM_MOVE_REGION(s); break;
-		case SM_STATISTICS: numreceived = handle_SM_STATISTICS(s); break;
-		default:
-			printf("[WARNING] Unknown message received from game server\n");
-			break;
-	}
-	return numreceived;
+  /* get the whole message depending on its type */
+  switch ( message_type )
+  {
+    case SM_STARTED: numreceived = handle_SM_STARTED(s); break;
+    case SM_GIVE_PLAYER: numreceived = handle_SM_GIVE_PLAYER(s); break;
+    case SM_MOVE_REGION: numreceived = handle_SM_MOVE_REGION(s); break;
+    case SM_STATISTICS: numreceived = handle_SM_STATISTICS(s); break;
+    default:
+      printf("[WARNING] Unknown message received from game server\n");
+      break;
+  }
+  return numreceived;
 }
 
 /***************************************************************************************************
@@ -421,81 +421,81 @@ int MasterModule::receiveMessage(TCPsocket s)
 
 void MasterModule::verifyQuest()
 {
-	int k;
-	int x,y;
+  int k;
+  int x,y;
 
-	/* don't create any quest if not all servers are connected */
-	if ( nservers != map_data.num_servers ) return;
+  /* don't create any quest if not all servers are connected */
+  if ( nservers != map_data.num_servers ) return;
 
-	/* quest beginning / ending */
-	if ( !quest.isActive() )
-	{
-		/* check if it is time to start a new quest */
-		if ( SDL_GetTicks() > time_of_next_quest )
-		{
-			/* set location and duration */
-			if ( custom_quests )
-			{
-				/* take next quest from list */
-				if ( quest_points.size() > 0 )
-				{
-					QuestPoint q = quest_points.front();
-					quest_points.pop_front();
-					x = q.x; y = q.y;
-					quest.setPosition(q.x,q.y);
-					quest.start( q.duration );
-				} else {
-					time_of_next_quest += 3600000;	/* wait for a long time */
-					return;
-				}
+  /* quest beginning / ending */
+  if ( !quest.isActive() )
+  {
+    /* check if it is time to start a new quest */
+    if ( SDL_GetTicks() > time_of_next_quest )
+    {
+      /* set location and duration */
+      if ( custom_quests )
+      {
+        /* take next quest from list */
+        if ( quest_points.size() > 0 )
+        {
+          QuestPoint q = quest_points.front();
+          quest_points.pop_front();
+          x = q.x; y = q.y;
+          quest.setPosition(q.x,q.y);
+          quest.start( q.duration );
+        } else {
+          time_of_next_quest += 3600000;  /* wait for a long time */
+          return;
+        }
 
-			} else {
+      } else {
 
-				/* create a random quest */
-				x = rand() % map_data.mapx;
-				y = rand() % map_data.mapy;
-				quest.setPosition(x,y);
-				quest.start( map_data.quest_min + rand() % map_data.quest_max );
-			}
+        /* create a random quest */
+        x = rand() % map_data.mapx;
+        y = rand() % map_data.mapy;
+        quest.setPosition(x,y);
+        quest.start( map_data.quest_min + rand() % map_data.quest_max );
+      }
 
-			/* tell all servers about the new quest */
-			for ( k = 0; k < nservers; k++ )
-			{
-				Message *m = new MasterMessageXY(MS_START_QUEST, x,y, sockets[k]);
-				if ( m == NULL )
-				{
-					printf("[WARNING] Failed to send MS_START_QUEST message\n");
-					return;
-				}
-				message_queue->putMessage(m);
-			}
-		}
+      /* tell all servers about the new quest */
+      for ( k = 0; k < nservers; k++ )
+      {
+        Message *m = new MasterMessageXY(MS_START_QUEST, x,y, sockets[k]);
+        if ( m == NULL )
+        {
+          printf("[WARNING] Failed to send MS_START_QUEST message\n");
+          return;
+        }
+        message_queue->putMessage(m);
+      }
+    }
 
-	} else {
+  } else {
 
-		/* check if it is time to stop the quest */
-		if ( quest.checkTimer() )
-		{
-			if ( custom_quests )
-				time_of_next_quest = SDL_GetTicks()	/* exactly that time */
-					+ map_data.quest_between * 1000;
-			else
-				time_of_next_quest = SDL_GetTicks()	/* random time */
-					+ rand() % map_data.quest_between * 1000;
+    /* check if it is time to stop the quest */
+    if ( quest.checkTimer() )
+    {
+      if ( custom_quests )
+        time_of_next_quest = SDL_GetTicks() /* exactly that time */
+          + map_data.quest_between * 1000;
+      else
+        time_of_next_quest = SDL_GetTicks() /* random time */
+          + rand() % map_data.quest_between * 1000;
 
-			/* tell all servers to stop quest */
-			for ( k = 0; k < nservers; k++ )
-			{
-				Message *m = new MasterMessage(MS_STOP_QUEST, sockets[k]);
-				if ( m == NULL )
-				{
-					printf("[WARNING] Failed to send MS_STOP_QUEST message\n");
-					return;
-				}
-				message_queue->putMessage(m);
-			}
-		}
-	}
+      /* tell all servers to stop quest */
+      for ( k = 0; k < nservers; k++ )
+      {
+        Message *m = new MasterMessage(MS_STOP_QUEST, sockets[k]);
+        if ( m == NULL )
+        {
+          printf("[WARNING] Failed to send MS_STOP_QUEST message\n");
+          return;
+        }
+        message_queue->putMessage(m);
+      }
+    }
+  }
 }
 
 /*
@@ -508,35 +508,35 @@ void MasterModule::verifyQuest()
 
 void MasterModule::moveRegion(int x, int y, int old_server_id, int new_server_id )
 {
-	IPaddress new_server = servers[new_server_id].udp_connection;
+  IPaddress new_server = servers[new_server_id].udp_connection;
 
-	/* set new layout */
-	layout[x][y] = new_server_id;
+  /* set new layout */
+  layout[x][y] = new_server_id;
 
-	/* send GIVE_REGION to new_server */
-	Message *m = new MasterMessageXYServer
-		(MS_GIVE_REGION, x,y,new_server, sockets[old_server_id]);
-	if ( m == NULL )
-	{
-		printf("[WARNING] Failed to send MS_GIVE_REGION message\n");
-		return;
-	}
-	message_queue->putMessage(m);
+  /* send GIVE_REGION to new_server */
+  Message *m = new MasterMessageXYServer
+    (MS_GIVE_REGION, x,y,new_server, sockets[old_server_id]);
+  if ( m == NULL )
+  {
+    printf("[WARNING] Failed to send MS_GIVE_REGION message\n");
+    return;
+  }
+  message_queue->putMessage(m);
 
-	/* send MOVING_REGION to all but new_server */
-	for ( int k = 0; k < nservers; k++ )
-	{
-		if ( k == old_server_id ) continue;
+  /* send MOVING_REGION to all but new_server */
+  for ( int k = 0; k < nservers; k++ )
+  {
+    if ( k == old_server_id ) continue;
 
-		Message *m = new MasterMessageXYServer
-			(MS_MOVING_REGION, x,y,new_server, sockets[k]);
-		if ( m == NULL )
-		{
-			printf("[WARNING] Failed to send MS_GIVE_REGION message\n");
-			return;
-		}
-		message_queue->putMessage(m);
-	}
+    Message *m = new MasterMessageXYServer
+      (MS_MOVING_REGION, x,y,new_server, sockets[k]);
+    if ( m == NULL )
+    {
+      printf("[WARNING] Failed to send MS_GIVE_REGION message\n");
+      return;
+    }
+    message_queue->putMessage(m);
+  }
 }
 
 /*
@@ -548,7 +548,7 @@ void MasterModule::moveRegion(int x, int y, int old_server_id, int new_server_id
 
 void MasterModule::initiate_action()
 {
-	verifyQuest();
+  verifyQuest();
 }
 
 /***************************************************************************************************
@@ -564,106 +564,106 @@ void MasterModule::initiate_action()
 
 void MasterModule::run()
 {
-	TCPsocket server_socket;
-	TCPsocket new_socket;
-	IPaddress ip,remoteIP;
-	int numused,numready;
-	SDLNet_SocketSet socket_set;
-	list<TCPsocket>::iterator its,its2;
-	Uint32 start_time;
-	Uint32 interval,interval2;
+  TCPsocket server_socket;
+  TCPsocket new_socket;
+  IPaddress ip,remoteIP;
+  int numused,numready;
+  SDLNet_SocketSet socket_set;
+  list<TCPsocket>::iterator its,its2;
+  Uint32 start_time;
+  Uint32 interval,interval2;
 
-	/* Create a new socket set (used to select sockets) */
-	socket_set = SDLNet_AllocSocketSet(MAX_SERVERS);
-	if( !socket_set ) throw "Cannot create socket set";
+  /* Create a new socket set (used to select sockets) */
+  socket_set = SDLNet_AllocSocketSet(MAX_SERVERS);
+  if( !socket_set ) throw "Cannot create socket set";
 
-	/* Open a new TCP connection */
-	if ( SDLNet_ResolveHost(&ip, NULL, port) )
-		throw "Call to SDLNet_ResolveHost failed";
-	if ( !( server_socket = SDLNet_TCP_Open(&ip) ) )
-		throw "Cannot open connection";
-	numused = SDLNet_TCP_AddSocket( socket_set, server_socket );
-	if ( numused == -1 ) throw "Cannot add server socket to the set";
+  /* Open a new TCP connection */
+  if ( SDLNet_ResolveHost(&ip, NULL, port) )
+    throw "Call to SDLNet_ResolveHost failed";
+  if ( !( server_socket = SDLNet_TCP_Open(&ip) ) )
+    throw "Cannot open connection";
+  numused = SDLNet_TCP_AddSocket( socket_set, server_socket );
+  if ( numused == -1 ) throw "Cannot add server socket to the set";
 
-	printf("Master started (%s) ...\n", getAlgorithm());
-	logMapData();
+  printf("Master started (%s) ...\n", getAlgorithm());
+  logMapData();
 
-	/* main loop */
-	interval = MASTER_CHECK_INTERVAL;
-	while ( !finished )
-	{
-		/* wait until at least one socket has activity */
-		start_time = SDL_GetTicks();
-		numready = SDLNet_CheckSockets( socket_set, interval );
+  /* main loop */
+  interval = MASTER_CHECK_INTERVAL;
+  while ( !finished )
+  {
+    /* wait until at least one socket has activity */
+    start_time = SDL_GetTicks();
+    numready = SDLNet_CheckSockets( socket_set, interval );
 
-		if( numready == -1 )
-			throw "Error selecting sockets";
+    if( numready == -1 )
+      throw "Error selecting sockets";
 
-		logGameState();
+    logGameState();
 
-		if ( numready == 0 )
-		{
-			initiate_action();
-			interval = MASTER_CHECK_INTERVAL;
-		}
+    if ( numready == 0 )
+    {
+      initiate_action();
+      interval = MASTER_CHECK_INTERVAL;
+    }
 
-		else if(numready)
-		{
-			/* read the message from the socket */
-			if( SDLNet_SocketReady(server_socket) )
-			{
-				/* accept a new connection */
-				new_socket = SDLNet_TCP_Accept(server_socket);
-				numused = SDLNet_TCP_AddSocket( socket_set, new_socket );
-				if ( numused == -1 )
-					throw "Cannot add socket to the set";
-				socket_list.insert(socket_list.end(),new_socket);
-				connected++;
+    else if(numready)
+    {
+      /* read the message from the socket */
+      if( SDLNet_SocketReady(server_socket) )
+      {
+        /* accept a new connection */
+        new_socket = SDLNet_TCP_Accept(server_socket);
+        numused = SDLNet_TCP_AddSocket( socket_set, new_socket );
+        if ( numused == -1 )
+          throw "Cannot add socket to the set";
+        socket_list.insert(socket_list.end(),new_socket);
+        connected++;
 
-				/* display the address of the new host */
-				remoteIP = getHostAddress(new_socket);
-				printf("Host connected: %X:%d\n",
-					SDLNet_Read32(&remoteIP.host),
-					SDLNet_Read16(&remoteIP.port));
+        /* display the address of the new host */
+        remoteIP = getHostAddress(new_socket);
+        printf("Host connected: %X:%d\n",
+          SDLNet_Read32(&remoteIP.host),
+          SDLNet_Read16(&remoteIP.port));
 
-			} else {
+      } else {
 
-				/* iterate throgh the sockets to find the active ones */
-				for ( its = socket_list.begin();
-					its != socket_list.end();
-					its++ )
-					while ( SDLNet_SocketReady(*its) )
-						if ( receiveMessage(*its) <= 0 )
-						{
-							printf("Host disconected\n");
-							its2 = its;
-							its++;
-							SDLNet_TCP_DelSocket(socket_set,*its2);
-							socket_list.erase(its2);
-							connected--;
-							if ( connected < map_data.num_servers )
-								throw "Too few servers";
-							break;
-						}
-			}
+        /* iterate throgh the sockets to find the active ones */
+        for ( its = socket_list.begin();
+          its != socket_list.end();
+          its++ )
+          while ( SDLNet_SocketReady(*its) )
+            if ( receiveMessage(*its) <= 0 )
+            {
+              printf("Host disconected\n");
+              its2 = its;
+              its++;
+              SDLNet_TCP_DelSocket(socket_set,*its2);
+              socket_list.erase(its2);
+              connected--;
+              if ( connected < map_data.num_servers )
+                throw "Too few servers";
+              break;
+            }
+      }
 
-			/* compute timeout interval */
-			interval2 = SDL_GetTicks() - start_time;
-			if ( interval2 > interval ) interval = 0;
-			else interval = interval - interval2;
-		}
+      /* compute timeout interval */
+      interval2 = SDL_GetTicks() - start_time;
+      if ( interval2 > interval ) interval = 0;
+      else interval = interval - interval2;
+    }
 
-	}
+  }
 
-	/* free resources */
-	SDLNet_FreeSocketSet( socket_set );
-	SDLNet_TCP_Close( server_socket );
+  /* free resources */
+  SDLNet_FreeSocketSet( socket_set );
+  SDLNet_TCP_Close( server_socket );
 }
 
 /* thread termination */
 void MasterModule::finish()
 {
-	finished = true;
+  finished = true;
 }
 
 /***************************************************************************************************
@@ -674,62 +674,62 @@ void MasterModule::finish()
 
 void MasterModule::setLogFile(char *file_name)
 {
-	if ( file_name == NULL ) return;
-	log_file = strdup(file_name);
-	if ( log_file == NULL ) printf("[WARNING] Not enough memory for log file name");
+  if ( file_name == NULL ) return;
+  log_file = strdup(file_name);
+  if ( log_file == NULL ) printf("[WARNING] Not enough memory for log file name");
 }
 
 bool MasterModule::logMapData()
 {
-	if ( log_file == NULL ) return false;
+  if ( log_file == NULL ) return false;
 
-	FILE *f = fopen(log_file, "wb");
-	if ( f == NULL ) return false;
+  FILE *f = fopen(log_file, "wb");
+  if ( f == NULL ) return false;
 
-	if ( fwrite(&map_data, sizeof(MapData), 1, f) != 1 ) return false;
+  if ( fwrite(&map_data, sizeof(MapData), 1, f) != 1 ) return false;
 
-	if ( fclose(f) != 0 ) return false;
-	return true;
+  if ( fclose(f) != 0 ) return false;
+  return true;
 }
 
 bool MasterModule::logGameState()
 {
-	if ( log_file == NULL ) return false;
+  if ( log_file == NULL ) return false;
 
-	FILE *f = fopen(log_file, "ab");
-	if ( f == NULL ) return false;
+  FILE *f = fopen(log_file, "ab");
+  if ( f == NULL ) return false;
 
-	/* write timestamp */
-	Uint32 timestamp = SDL_GetTicks();
-	if ( fwrite(&timestamp, sizeof(Uint32), 1, f) != 1 )
-		return false;
+  /* write timestamp */
+  Uint32 timestamp = SDL_GetTicks();
+  if ( fwrite(&timestamp, sizeof(Uint32), 1, f) != 1 )
+    return false;
 
-	/* write servers vector */
-	if ( fwrite(servers, sizeof(ConnectedServerInfo), map_data.num_servers, f)
-		!= (size_t)map_data.num_servers ) return false;
+  /* write servers vector */
+  if ( fwrite(servers, sizeof(ConnectedServerInfo), map_data.num_servers, f)
+    != (size_t)map_data.num_servers ) return false;
 
-	/* write quest data */
-	int x;
-	x = quest.isActive();
-	if ( fwrite(&x, sizeof(int), 1, f) != 1 ) return false;
-	x = quest.getX();
-	if ( fwrite(&x, sizeof(int), 1, f) != 1 ) return false;
-	x = quest.getY();
-	if ( fwrite(&x, sizeof(int), 1, f) != 1 ) return false;
+  /* write quest data */
+  int x;
+  x = quest.isActive();
+  if ( fwrite(&x, sizeof(int), 1, f) != 1 ) return false;
+  x = quest.getX();
+  if ( fwrite(&x, sizeof(int), 1, f) != 1 ) return false;
+  x = quest.getY();
+  if ( fwrite(&x, sizeof(int), 1, f) != 1 ) return false;
 
-	/* write master statistics */
-	if ( fwrite(&stats, sizeof(MasterStatistics), 1, f) != 1 ) return false;
+  /* write master statistics */
+  if ( fwrite(&stats, sizeof(MasterStatistics), 1, f) != 1 ) return false;
 
-	/* write map data */
-	for ( int i = 0; i < map_data.nregx; i++ )
-		for ( int j = 0; j < map_data.nregy; j++ )
-		{
-			if ( fwrite(&layout[i][j], sizeof(int), 1, f) != 1 ) return false;
-			if ( fwrite(&players_per_region[i][j], sizeof(int), 1, f) != 1 ) return false;
-		}
+  /* write map data */
+  for ( int i = 0; i < map_data.nregx; i++ )
+    for ( int j = 0; j < map_data.nregy; j++ )
+    {
+      if ( fwrite(&layout[i][j], sizeof(int), 1, f) != 1 ) return false;
+      if ( fwrite(&players_per_region[i][j], sizeof(int), 1, f) != 1 ) return false;
+    }
 
-	if ( fclose(f) != 0 ) return false;
-	return true;
+  if ( fclose(f) != 0 ) return false;
+  return true;
 }
 
 /***************************************************************************************************
@@ -741,15 +741,15 @@ bool MasterModule::logGameState()
 
 void MasterModule::setLoadBalanceLimit(Uint32 seconds)
 {
-	min_balance_interval = seconds * 1000;
+  min_balance_interval = seconds * 1000;
 }
 
 bool MasterModule::limitLoadBalance()
 {
-	if ( min_balance_interval == 0 ) return false;
-	Uint32 now = SDL_GetTicks();
-	if ( now - last_balance < min_balance_interval ) return true;
-	last_balance = now;
-	return false;
+  if ( min_balance_interval == 0 ) return false;
+  Uint32 now = SDL_GetTicks();
+  if ( now - last_balance < min_balance_interval ) return true;
+  last_balance = now;
+  return false;
 
 }

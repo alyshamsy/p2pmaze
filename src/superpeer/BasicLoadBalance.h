@@ -29,27 +29,27 @@
 class BasicLoadBalance : public MasterModule
 {
 public:
-	/* constructor / destructor */
-	BasicLoadBalance(MapData &map_data, int port);
-	virtual ~BasicLoadBalance();
+  /* constructor / destructor */
+  BasicLoadBalance(MapData &map_data, int port);
+  virtual ~BasicLoadBalance();
 
-	/* utility */
-	virtual int getNumberOfPlayers();
-	virtual double serverMachineFactor(int k);
-	virtual double getRatio(int k);
-	virtual int getLightestServer();
+  /* utility */
+  virtual int getNumberOfPlayers();
+  virtual double serverMachineFactor(int k);
+  virtual double getRatio(int k);
+  virtual int getLightestServer();
 
-	/* conditions */
-	virtual bool isServerOverloaded(int s);	/* is server s overloaded */
-	virtual bool isServerSafe(int s);
-	virtual bool isServerLight(int s);
-	virtual bool isOverloaded(int s, int players);	/* is server s overloaded with p players */
-	virtual bool isSafe(int s, int players);
-	virtual bool isLight(int s, int players);
+  /* conditions */
+  virtual bool isServerOverloaded(int s); /* is server s overloaded */
+  virtual bool isServerSafe(int s);
+  virtual bool isServerLight(int s);
+  virtual bool isOverloaded(int s, int players);  /* is server s overloaded with p players */
+  virtual bool isSafe(int s, int players);
+  virtual bool isLight(int s, int players);
 
-	/* load balancing action */
-	virtual bool balance() { return false; };
-	virtual void initiate_action();
+  /* load balancing action */
+  virtual bool balance() { return false; };
+  virtual void initiate_action();
 };
 
 #endif

@@ -22,15 +22,15 @@
 class SenderModule : public Module
 {
 protected:
-	MessageQueue *message_queue;
+  MessageQueue *message_queue;
 
 public:
-	SenderModule(MessageQueue *message_queue);
+  SenderModule(MessageQueue *message_queue);
 
-	/* main loop */
-	void run();
-	void sendMessage(Message *m);
-	int SDLNet_TCP_Send2(TCPsocket sock, void *data, int len);
+  /* main loop */
+  void run();
+  void sendMessage(Message *m);
+  int SDLNet_TCP_Send2(TCPsocket sock, void *data, int len);
 };
 
 #endif

@@ -31,15 +31,15 @@
 class AlgLightest : public BasicLoadBalance
 {
 public:
-	/* Constructor / Destructor */
-	AlgLightest(MapData &map_data, int port);
-	~AlgLightest();
+  /* Constructor / Destructor */
+  AlgLightest(MapData &map_data, int port);
+  ~AlgLightest();
 
-	/* Algoritm name */
-	virtual const char* getAlgorithm() { return "lightest"; }
+  /* Algoritm name */
+  virtual const char* getAlgorithm() { return "lightest"; }
 
-	/* Algoritm implementation */
-	bool balance();
+  /* Algoritm implementation */
+  bool balance();
 
 };
 

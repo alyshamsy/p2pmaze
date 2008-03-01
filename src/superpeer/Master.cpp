@@ -213,7 +213,7 @@ int main( int argc, char *argv[] )
     if ( SDLNet_Init() < 0 ) throw "Cannot start SDL_net";
 
     /* parse configuration file */
-    if ( !conf.addFile(argv[1]) ) throw "Invalid configuration file";
+    if ( !conf.addFile(config_file) ) throw "Invalid configuration file";
     dataFromConfigurator(map_data, conf); // get data from configuration file
     startPeer (conf); // fork a peer
 

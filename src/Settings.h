@@ -38,6 +38,6 @@
 
 // Defualts for the Master program:
 #define DEFAULT_MASTER_PORT 6666
-#define DEFAULT_CONFIG_FILE "config_demo.ini"
+#define DEFAULT_CONFIG_FILE "./config_demo.ini"
 
 #endif

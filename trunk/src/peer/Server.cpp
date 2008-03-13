@@ -15,7 +15,6 @@
 *    March - August 2007
 *
 ***************************************************************************************************/
-
 #include "Server.h"
 #include "../comm/MessageModuleIN.h"
 #include "../comm/MessageModuleOUT.h"
@@ -25,8 +24,9 @@
 #include "WorldUpdateModule.h"
 #include "StatisticsModule.h"
 
-int local_port = 6886, master_port = 6887;
-char *local_name, *master_name;
+int intServerPort = 0, intMasterPort = 0;
+string strServerPort, strMasterPort;
+string strServerName, strMasterName;
 Configurator *configurator = NULL;
 ServerData *server_data = NULL;
 
@@ -57,33 +57,97 @@ int module_thread(void *data)
 *
 ***************************************************************************************************/
 
+void
+startClient (Configurator& conf)
+{
+  pid_t child_id = fork ();
+
+  if (child_id > 0)
+    return;
+
+  if (child_id == 0) 
+  {
+    int ret = execl ("client", 
+        "client", 
+        (strServerName + ":" + strServerPort).c_str(), 
+        NULL);
+    if (ret < 0)
+    {
+      std::perror("Could not execl peer process");
+      exit (1);
+    }
+  }
+}
+
 void init(int argc, char *argv[])
 {
-  char *port_ptr;
-
   /* interpret command line arguments */
-  if ( argc != 3 )
-    throw "Parameters: <master_name:port> <local_name:port>";
-  /* master name and port */
-  master_name = strdup(argv[1]);
-  if ( master_name == NULL ) throw "Not enough memory";
-  port_ptr = strchr(master_name, ':');
-  if ( port_ptr == NULL ) throw "No port specified";
-  *(port_ptr++) = 0;
-  sscanf(port_ptr, "%d", &master_port);
-  if ( master_port < 1 )
-    throw "The port must be an integer larger than 0";
-  /* local name and port */
-  local_name = strdup(argv[2]);
-  if ( local_name == NULL ) throw "Not enough memory";
-  port_ptr = strchr(local_name, ':');
-  if ( port_ptr == NULL ) throw "No port specified";
-  *(port_ptr++) = 0;
-  sscanf(port_ptr, "%d", &local_port);
-  if ( local_port < 1 )
-    throw "The port must be an integer larger than 0";
-  printf("Starting server %s:%d\n", local_name, local_port);
+  if (argc == 1) {
+    strMasterName = DEFAULT_MASTER_NAME;
+    strMasterPort = DEFAULT_MASTER_PORT;
+    strServerName = DEFAULT_SERVER_NAME;
+    strServerPort = DEFAULT_SERVER_PORT;
+  }
+  else if (argc == 3)
+  {
+    //char * pArg = NULL;
+    //char * pPort = NULL;
+    /*pArg = strdup (argv[1]);
+    if ( pArg == NULL ) throw "Not enough memory";
+    pPort = strchr (pArg, ':');
+    if (pPort == NULL) throw "No port specified";
+    *(pPort++) = 0;
+    sscanf (pPort, "%s", &strMasterPort);
+    */
+    string strInputArg;
+    char chInputArg[100];
+    
+    /* master name and port */
+    // Copy argument to char[100] buffer and then copy to variable
+    strcpy (chInputArg, argv[1]);
+    strInputArg = chInputArg;
+    int pos = 0;
+    pos = strInputArg.find (":");
+    strMasterName = strInputArg.substr (0, pos);
+    if (strMasterName == "")
+      throw "No name for master server specified!";
+    strMasterPort = strInputArg.substr (pos+1);
 
+    /* server name and port */
+    // Copy argument to char[100] buffer and then copy to variable
+    strcpy (chInputArg, argv[2]);
+    strInputArg = chInputArg;
+    if ( strInputArg == "" ) throw "Not enough memory";
+    pos = strInputArg.find (":");
+    strServerName = strInputArg.substr (0, pos);
+    if (strServerName == "")
+      throw "No name for local server specified!";
+    strServerPort = strInputArg.substr (pos+1);
+  } 
+    /*strServerName = strdup(argv[2]);
+    if ( strServerName == NULL ) throw "Not enough memory";
+    port_ptr = strchr(strServerName, ':');
+    if ( port_ptr == NULL ) throw "No port specified";
+    *(port_ptr++) = 0;
+    sscanf(port_ptr, "%d", &strServerPort);
+    if ( strServerPort < 1 )
+      throw "The port must be an integer larger than 0";
+    */
+  else {
+    throw "Parameters: <strMasterName:port> <strServerName:port>";
+  }
+
+  // Convert server port and master port to type int
+  intServerPort = atoi (strServerPort.c_str() );
+  intMasterPort = atoi (strMasterPort.c_str() );
+
+  if ( intMasterPort < 1 || intServerPort < 1)
+    throw "The port must be an integer larger than 0";
+  
+  //cout << "Starting server " << strServerName << ":" << strServerPort << endl;
+  printf("Starting server %s:%s\n", 
+      strServerName.c_str(), strServerPort.c_str());
+ 
   /* initialize random number generator */
   srand((unsigned int)time(NULL));
 
@@ -99,7 +163,7 @@ void init(int argc, char *argv[])
   /* initialize server data */
   server_data = new ServerData(0);
   if ( server_data == NULL ) throw "Cannot initialize server data";
-  server_data->setOwnIP(local_name, local_port);
+  server_data->setOwnIP((char*)strServerName.c_str(), intServerPort);
 }
 
 void finish()
@@ -111,7 +175,7 @@ void finish()
   /* free memory */
   delete server_data;
   delete configurator;
-  free(local_name);
+  //free(strServerName); // free pointers allocated using strdup()
 }
 
 /***************************************************************************************************
@@ -134,7 +198,7 @@ int main(int argc, char *argv[])
 
     /* create server modules */
     /* MapManagementModule */
-    MapManagModule *mm_module = new MapManagModule(server_data, master_name, master_port);
+    MapManagModule *mm_module = new MapManagModule(server_data, (char*)strMasterName.c_str(), intMasterPort);
     if ( mm_module == NULL ) throw "Cannot creat map management module";
     mm_module->retrieveMapData(); /* first contact master and get map information */
     server_data->setNumberOfThreads(3
@@ -142,7 +206,7 @@ int main(int argc, char *argv[])
       + server_data->world_update_threads );
 
     /* IN */
-    MessageModuleIN *in_module = new MessageModuleIN(local_port);
+    MessageModuleIN *in_module = new MessageModuleIN(intServerPort);
     if ( in_module == NULL ) throw "Cannot creat input module";
     SDL_Thread *in_thread = SDL_CreateThread(module_thread, (void*)in_module);
     if ( in_thread == NULL ) throw "Cannot creat input thread";

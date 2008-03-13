@@ -151,8 +151,11 @@ startPeer (Configurator& conf)
 
   if (child_id == 0) 
   {
-    int ret = execl ("peer", "peer", "localhost:6666", ("localhost:"+
-           conf.getStringAttribute("master.server_port")).c_str(), NULL);
+    int ret = execl ("peer", 
+        "peer", 
+        ("localhost:"+ conf.getStringAttribute("master.server_port")).c_str(), 
+        "localhost:6666", 
+        NULL);
     if (ret < 0)
     {
       std::perror("Could not execl peer process");
@@ -183,22 +186,22 @@ int main( int argc, char *argv[] )
 
     /* parse command line and configuration file */
     if (argc == 1) {
-      port        =  DEFAULT_MASTER_PORT;
-      config_file  = DEFAULT_CONFIG_FILE;
+      port        = atoi (DEFAULT_MASTER_PORT);
+      config_file = strdup (DEFAULT_CONFIG_FILE);
     }
     else if (argc == 2) {
-      port        = DEFAULT_MASTER_PORT;
-      config_file  = DEFAULT_CONFIG_FILE;
+      port        = atoi (DEFAULT_MASTER_PORT);
+      config_file = strdup (DEFAULT_CONFIG_FILE);
       log_file = argv[1];
     }
     else if (argc == 3) {
       sscanf(argv[2], "%d", &port);
-      config_file = argv[1];
+      config_file = strdup (argv[1]);
     }
     else if (argc == 4) {
       sscanf(argv[2], "%d", &port);
-      config_file = argv[2];
-      log_file = argv[3];
+      config_file = strdup (argv[2]);
+      log_file = strdup (argv[3]);
     }
     else throw 
       "Usage:   master <config_file> <port> [<log_file>]\nmaster log_file\nmaster";
@@ -265,6 +268,13 @@ int main( int argc, char *argv[] )
     /* Close SDL */
     SDLNet_Quit();
     SDL_Quit();
+
+    // Free memory
+    // The memory that contains the locations of the config and log files
+    if (config_file != NULL)
+      free (config_file);
+    if (log_file != NULL)
+      free (log_file);
 
   } catch ( const char *err ) {
     /* display errors */

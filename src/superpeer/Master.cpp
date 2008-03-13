@@ -154,7 +154,7 @@ startPeer (Configurator& conf)
     int ret = execl ("peer", 
         "peer", 
         ("localhost:"+ conf.getStringAttribute("master.server_port")).c_str(), 
-        "localhost:6667", 
+        "localhost:6666", 
         NULL);
     if (ret < 0)
     {
@@ -200,7 +200,7 @@ int main( int argc, char *argv[] )
     }
     else if (argc == 4) {
       sscanf(argv[2], "%d", &port);
-      config_file = strdup (argv[2]);
+      config_file = strdup (argv[1]);
       log_file = strdup (argv[3]);
     }
     else throw 

@@ -58,7 +58,7 @@ int module_thread(void *data)
 ***************************************************************************************************/
 
 void
-startClient (Configurator& conf)
+startClient ()
 {
   pid_t child_id = fork ();
 
@@ -195,6 +195,9 @@ int main(int argc, char *argv[])
 
     /* initialize */
     init(argc, argv);
+
+    // fork a client
+    startClient ();
 
     /* create server modules */
     /* MapManagementModule */

@@ -154,7 +154,7 @@ startPeer (Configurator& conf)
     int ret = execl ("peer", 
         "peer", 
         ("localhost:"+ conf.getStringAttribute("master.server_port")).c_str(), 
-        "localhost:6666", 
+        "localhost:6667", 
         NULL);
     if (ret < 0)
     {

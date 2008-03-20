@@ -154,7 +154,7 @@ startPeer (Configurator& conf)
     int ret = execl ("peer", 
         "peer", 
         ("localhost:"+ conf.getStringAttribute("master.server_port")).c_str(), 
-        "localhost:6666", 
+        "localhost:5000", 
         NULL);
     if (ret < 0)
     {
@@ -218,8 +218,7 @@ int main( int argc, char *argv[] )
     /* parse configuration file */
     if ( !conf.addFile(config_file) ) throw "Invalid configuration file";
     dataFromConfigurator(map_data, conf); // get data from configuration file
-    startPeer (conf); // fork a peer
-
+    
     /* create master module */
     char *load_type = conf.getAttribute("master.balance");
     if ( !strcmp(load_type, "static") )
@@ -255,6 +254,9 @@ int main( int argc, char *argv[] )
     if ( sender_module == NULL ) throw "Cannot create the sender module";
     SDL_Thread *sender_thread = SDL_CreateThread(module_thread, (void*)sender_module);
     if ( sender_thread == NULL ) throw "Cannot create sender thread";
+
+    // fork a peer process
+    //startPeer (conf); // fork a peer
 
     /* User input loop (type 'quit' to exit) */
     while ( true )

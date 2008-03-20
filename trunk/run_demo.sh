@@ -24,19 +24,19 @@ make -C src/gamemonitor
 #color
 echo "Runnig master ..."
 #no_color
-xterm -e "./master $MASTER_CONFIG_FILE $MASTER_PORT /tmp/master.log" &
+xterm -e "./superpeer $MASTER_CONFIG_FILE $MASTER_PORT /tmp/master.log" &
 sleep 1
 
 #color
 echo "Runnig server1 ..."
 #no_color
-xterm -e "./server $HOST:$MASTER_PORT $HOST:$SERVER1_PORT " &
+xterm -e "./peer $HOST:$MASTER_PORT $HOST:$SERVER1_PORT " &
 sleep 0.2
 
 #color
 echo "Runnig server2 ..."
 #no_color
-xterm -e "./server $HOST:$MASTER_PORT $HOST:$SERVER2_PORT " &
+xterm -e "./peer $HOST:$MASTER_PORT $HOST:$SERVER2_PORT " &
 sleep 1
 
 #color

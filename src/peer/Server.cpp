@@ -196,13 +196,10 @@ int main(int argc, char *argv[])
     /* initialize */
     init(argc, argv);
 
-    // fork a client
-    startClient ();
-
     /* create server modules */
     /* MapManagementModule */
     MapManagModule *mm_module = new MapManagModule(server_data, (char*)strMasterName.c_str(), intMasterPort);
-    if ( mm_module == NULL ) throw "Cannot creat map management module";
+    if ( mm_module == NULL ) throw "Cannot create map management module";
     mm_module->retrieveMapData(); /* first contact master and get map information */
     server_data->setNumberOfThreads(3
       + server_data->regular_update_threads
@@ -210,15 +207,15 @@ int main(int argc, char *argv[])
 
     /* IN */
     MessageModuleIN *in_module = new MessageModuleIN(intServerPort);
-    if ( in_module == NULL ) throw "Cannot creat input module";
+    if ( in_module == NULL ) throw "Cannot create input module";
     SDL_Thread *in_thread = SDL_CreateThread(module_thread, (void*)in_module);
-    if ( in_thread == NULL ) throw "Cannot creat input thread";
+    if ( in_thread == NULL ) throw "Cannot create input thread";
 
     /* OUT */
     MessageModuleOUT *out_module = new MessageModuleOUT(in_module->getUDPsocket());
-    if ( out_module == NULL ) throw "Cannot creat output module";
+    if ( out_module == NULL ) throw "Cannot create output module";
     SDL_Thread *out_thread = SDL_CreateThread(module_thread, (void*)out_module);
-    if ( out_thread == NULL ) throw "Cannot creat output thread";
+    if ( out_thread == NULL ) throw "Cannot create output thread";
 
     /* RegularUpdateModule */
     RegularUpdateModule **ru_module =
@@ -231,19 +228,19 @@ int main(int argc, char *argv[])
     for ( i = 0; i < server_data->regular_update_threads; i++ )
     {
       ru_module[i] = new RegularUpdateModule(server_data, i);
-      if ( ru_module[i] == NULL ) throw "Cannot creat regular update module";
+      if ( ru_module[i] == NULL ) throw "Cannot create regular update module";
       ru_module[i]->setOutQueue(out_module->getQueue());
       ru_module[i]->barrier = barrier;
       ru_thread[i] = SDL_CreateThread(module_thread, (void*)(ru_module[i]));
-      if ( ru_thread[i] == NULL ) throw "Cannot creat regular update thread";
+      if ( ru_thread[i] == NULL ) throw "Cannot create regular update thread";
     }
 
     /* PeriodicEventsModule */
     PeriodicEventsModule *pe_module = new PeriodicEventsModule(server_data);
-    if ( pe_module == NULL ) throw "Cannot creat regular update module";
+    if ( pe_module == NULL ) throw "Cannot create regular update module";
     pe_module->setOutQueue(out_module->getQueue());
     SDL_Thread *pe_thread = SDL_CreateThread(module_thread, (void*)pe_module);
-    if ( pe_thread == NULL ) throw "Cannot creat regular update thread";
+    if ( pe_thread == NULL ) throw "Cannot create regular update thread";
 
     /* WorldUpdateModule */
     WorldUpdateModule **wu_module =
@@ -255,24 +252,27 @@ int main(int argc, char *argv[])
     for ( i = 0; i < server_data->world_update_threads; i++ )
     {
       wu_module[i] = new WorldUpdateModule(server_data);
-      if ( wu_module[i] == NULL ) throw "Cannot creat world update module";
+      if ( wu_module[i] == NULL ) throw "Cannot create world update module";
       wu_module[i]->setInQueue(in_module->getQueue());
       wu_module[i]->setOutQueue(out_module->getQueue());
       wu_module[i]->setMapManagModule(mm_module);
       wu_thread[i] = SDL_CreateThread(module_thread, (void*)(wu_module[i]));
-      if ( wu_thread[i] == NULL ) throw "Cannot creat world update thread";
+      if ( wu_thread[i] == NULL ) throw "Cannot create world update thread";
     }
 
     mm_module->setOutQueue(out_module->getQueue());
     SDL_Thread *mm_thread = SDL_CreateThread(module_thread, (void*)mm_module);
-    if ( mm_thread == NULL ) throw "Cannot creat map management thread";
+    if ( mm_thread == NULL ) throw "Cannot create map management thread";
 
     /* StatisticsModule */
     StatisticsModule *stats_module = new StatisticsModule(server_data,
       mm_module, ru_module, in_module, out_module);
-    if ( stats_module == NULL ) throw "Cannot creat statistics module";
+    if ( stats_module == NULL ) throw "Cannot create statistics module";
     SDL_Thread *stats_thread = SDL_CreateThread(module_thread, (void*)stats_module);
-    if ( stats_thread == NULL ) throw "Cannot creat statistics thread";
+    if ( stats_thread == NULL ) throw "Cannot create statistics thread";
+
+    // fork a client
+    startClient ();
 
     /* User input loop (type 'quit' to exit) */
     while ( true )

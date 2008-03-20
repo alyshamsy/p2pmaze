@@ -40,7 +40,7 @@
 #define DEFAULT_MASTER_NAME "localhost"
 #define DEFAULT_MASTER_PORT "6666"
 #define DEFAULT_SERVER_NAME "localhost"
-#define DEFAULT_SERVER_PORT "6666"
+#define DEFAULT_SERVER_PORT "5000"
 #define DEFAULT_CONFIG_FILE "./config_demo.ini"
 
 #endif

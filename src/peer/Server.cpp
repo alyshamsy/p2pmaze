@@ -272,7 +272,7 @@ int main(int argc, char *argv[])
     if ( stats_thread == NULL ) throw "Cannot create statistics thread";
 
     // fork a client
-    startClient ();
+    //startClient ();
 
     /* User input loop (type 'quit' to exit) */
     while ( true )

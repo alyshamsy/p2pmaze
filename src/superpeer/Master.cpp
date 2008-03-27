@@ -256,7 +256,7 @@ int main( int argc, char *argv[] )
     if ( sender_thread == NULL ) throw "Cannot create sender thread";
 
     // fork a peer process
-    //startPeer (conf); // fork a peer
+    startPeer (conf); // fork a peer
 
     /* User input loop (type 'quit' to exit) */
     while ( true )

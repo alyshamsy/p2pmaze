@@ -149,14 +149,17 @@ void MapManagModule::run()
         break;
 
       case MS_GIVE_REGION:
+	printf("MS_GIVE_REGION\n");
         if ( !handle_GIVE_REGION() )
           throw "Error in server-master communication";
         break;
       case MS_TAKE_REGION:
+	printf("MS_TAKE_REGION\n");
         if ( !handle_TAKE_REGION() )
           throw "Error in server-master communication";
         break;
       case MS_MOVING_REGION:
+	printf("MS_MOVING_REGION\n");
         if ( !handle_MOVING_REGION() )
           throw "Error in server-master communication";
         break;
@@ -234,6 +237,7 @@ void MapManagModule::sendStatistics( ServerStatistics *ss, Serializator *se )
 bool MapManagModule::handle_TAKE_PLAYER()
 /* returns false only if there was a socket error */
 {
+	printf("Taking player\n");
   Uint32 len;
   char *buffer;
 

@@ -16,6 +16,7 @@
 *
 ***************************************************************************************************/
 
+#include <assert.h>
 #include "Master.h"
 #include "AlgLightest.h"
 
@@ -43,6 +44,15 @@ bool AlgLightest::balance()
 {
   int s1,s2;
   int nps1,nps2;
+
+    printf("Rebalancing load: %d servers\n", nservers);
+    for(int x = 0; x<map_data.nregx; x++)
+    {
+        for(int y = 0; y<map_data.nregy; y++)
+        {
+            assert(layout[x][y] != REGION_UNOCCUPIED);
+        }
+    }
 
   /* find overloaded server (s1) */
   for ( s1 = 0; s1 < nservers; s1++ )

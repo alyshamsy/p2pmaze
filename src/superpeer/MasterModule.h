@@ -21,6 +21,7 @@
 
 #include <list>
 #include <map>
+#include <vector>
 using namespace std;
 
 /***************************************************************************************************
@@ -28,6 +29,7 @@ using namespace std;
 * MasterModule - Main module for the master
 *
 ***************************************************************************************************/
+#define REGION_UNOCCUPIED -1
 
 class MasterModule : public Module
 {
@@ -44,8 +46,10 @@ protected:
           /* (this module just puts them in this queue) */
 
   /* list of servers ( only those that will partition the map ) */
-  ConnectedServerInfo servers[MAX_SERVERS];
-  TCPsocket sockets[MAX_SERVERS];
+  //ConnectedServerInfo servers[MAX_SERVERS];
+  vector<ConnectedServerInfo> servers;
+  vector<TCPsocket> sockets;
+  //TCPsocket sockets[MAX_SERVERS];
   int nservers;
 
   /* map information */
@@ -65,6 +69,9 @@ protected:
 protected:
   /* safe receive (receives the entire message) */
   int SDLNet_TCP_Recv(TCPsocket sock, void *data, int maxlen);
+
+  void change_layout_index(int from, int to);
+  void decrement_remaining_indecies(int start);
 
 public:
   /* constructor / destructor */

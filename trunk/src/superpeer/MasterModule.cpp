@@ -15,7 +15,7 @@
 *    March - August 2007
 *
 ***************************************************************************************************/
-
+#include <assert.h>
 #include "Master.h"
 #include "MasterModule.h"
 
@@ -188,49 +188,54 @@ int MasterModule::handle_SM_STARTED(TCPsocket s)
   }
 
   /* add a new server to the list */
-  sockets[nservers] = s;
-  ConnectedServerInfo *csi = &servers[nservers];
+  sockets.push_back(s);
+  ConnectedServerInfo csi;// = &servers[nservers];
   nservers++;
-  csi->tcp_connection = getHostAddress(s);
-  csi->udp_connection = udp_addr;
+  csi.tcp_connection = getHostAddress(s);
+  csi.udp_connection = udp_addr;
+  servers.push_back(csi);
 
   /* wait until all servers are conected */
-  if ( connected < map_data.num_servers ) return 1;
+  //if ( connected < map_data.num_servers ) return 1;
 
-  /* if all servers are connected create initial partition of map */
-  int n_hosts = socket_list.size();
-  int map_size = map_data.nregx * map_data.nregy;
-  int regions_per_host = map_size / n_hosts + ( ( map_size % n_hosts != 0 ) ? 1 : 0 );
-  int regions_for_this_host = regions_per_host;
-  int i,j,k = 0;
+  /* if the first server is connected assign him to all regeons */
+  if(nservers == 1){
+    //int n_hosts = socket_list.size();
+    int map_size = map_data.nregx * map_data.nregy;
+    int regions_per_host = map_size; //map_size / n_hosts + ( ( map_size % n_hosts != 0 ) ? 1 : 0 );
+    //int regions_for_this_host = regions_per_host;
+    int i,j,k = 0;
 
-  for ( i = 0; i < map_data.nregx; i++ )  /* for all regions */
-    for ( j = 0; j < map_data.nregy; j++ )
-    {
-      layout[i][j] = k;
-      regions_for_this_host--;
-      if ( regions_for_this_host == 0 )
-      {
-        k++;
-        regions_for_this_host = regions_per_host;
-      }
-    }
+    for ( i = 0; i < map_data.nregx; i++ )  /* for all regions */
+      for ( j = 0; j < map_data.nregy; j++ )
+	{
+	  layout[i][j] = k;
+	  /*regions_for_this_host--;
+	  if ( regions_for_this_host == 0 )
+	    {
+	      k++;
+	      regions_for_this_host = regions_per_host;
+	      }*/
+	    }
 
-  /* send the layout of regions to all servers */
+  }
+  /* send the layout of regions to the server that just joined */
   /*
     - since this is the first message sent to the server, there are no synchronization
     problems so there is no need to put the message in the MessageQueue
   */
-  for ( k = 0; k < nservers; k++ )
-  {
-    csi = &servers[k];
+  //for ( k = 0; k < nservers; k++ )
+  //{
+    int k = nservers - 1; // last server
+    //csi = &servers[k];
     message_type = MS_CONFIG;
+    assert(sockets.size() == nservers);
     r = SDLNet_TCP_Send( sockets[k], &message_type, sizeof(Uint32) );
     if ( r < (int)sizeof(Uint32) ) throw "Error sending map to server";
     r = SDLNet_TCP_Send( sockets[k], &map_data, sizeof(MapData) );
     if ( r < (int)sizeof(MapData) ) throw "Error sending map to server";
-    for ( i = 0; i < map_data.nregx; i++ )
-      for ( j = 0; j < map_data.nregy; j++ )
+    for ( int i = 0; i < map_data.nregx; i++ )
+      for ( int j = 0; j < map_data.nregy; j++ )
       {
         r = SDLNet_TCP_Send( sockets[k],
           &servers[layout[i][j]].udp_connection,
@@ -238,7 +243,7 @@ int MasterModule::handle_SM_STARTED(TCPsocket s)
         if ( r < (int)sizeof(IPaddress) )
           throw "Error sending map to server";
       }
-  }
+    //}
 
   return 1;
 }
@@ -277,7 +282,7 @@ int MasterModule::handle_SM_GIVE_PLAYER(TCPsocket s)
   if ( m == NULL )
   {
     printf("[WARNING] Failed to transfer player. Player lost\n");
-    delete buffer;
+    delete[] buffer;
     return 0;
   }
   message_queue->putMessage(m);
@@ -318,7 +323,7 @@ int MasterModule::handle_SM_MOVE_REGION(TCPsocket s)
   Message *m = new MasterMessageWithBuffer(MS_TAKE_REGION, buffer, len, next);
   if ( m == NULL )
   {
-    delete buffer;
+    delete[] buffer;
     throw "Failed to transfer region";
   }
   message_queue->putMessage(m);
@@ -369,7 +374,10 @@ int MasterModule::handle_SM_STATISTICS(TCPsocket s)
   for ( i = 0; i < nservers; i++ )
     if ( equalIP(addr, servers[i].tcp_connection) )
     {
-      memcpy(&servers[i].statistics, &ss, sizeof(ServerStatistics));
+      //memcpy(&servers[i].statistics, &ss, sizeof(ServerStatistics));
+      ConnectedServerInfo info = servers[i];
+      info.statistics = ss;
+      servers[i] = info;		
       break;
     }
 
@@ -561,6 +569,10 @@ void MasterModule::initiate_action()
 * - if nothing happens for a period of time call the 'initiate_action' method
 *
 ***************************************************************************************************/
+static bool operator==(IPaddress left, IPaddress right)
+{
+    return left.host == right.host && left.port == right.port;
+}
 
 void MasterModule::run()
 {
@@ -629,22 +641,57 @@ void MasterModule::run()
       } else {
 
         /* iterate throgh the sockets to find the active ones */
-        for ( its = socket_list.begin();
+	    vector<IPaddress> servers_to_delete;
+        for (  its = socket_list.begin();
           its != socket_list.end();
           its++ )
           while ( SDLNet_SocketReady(*its) )
             if ( receiveMessage(*its) <= 0 )
             {
               printf("Host disconected\n");
+	        servers_to_delete.push_back(getHostAddress(*its));
               its2 = its;
               its++;
               SDLNet_TCP_DelSocket(socket_set,*its2);
-              socket_list.erase(its2);
+              socket_list.erase(its2);	
               connected--;
-              if ( connected < map_data.num_servers )
-                throw "Too few servers";
+	           
+              //if ( connected < map_data.num_servers )
+	      //throw "Too few servers";
               break;
             }
+     	for(vector<IPaddress>::iterator i = servers_to_delete.begin(); i!=servers_to_delete.end(); i++)
+	    {
+            int index = 0;
+		    for(vector<ConnectedServerInfo>::iterator j = servers.begin(); j!=servers.end();)
+		    {
+			    if(j->tcp_connection == *i)
+                {
+                    change_layout_index(index, REGION_UNOCCUPIED);
+                    j = servers.erase(j);
+                    decrement_remaining_indecies(index);
+                    nservers--;	
+                    continue;
+                }
+                j++;
+                index++;
+		    }
+	    }
+
+        for(vector<IPaddress>::iterator i = servers_to_delete.begin(); i!=servers_to_delete.end(); i++)
+	    {
+		    for(vector<TCPsocket>::iterator j = sockets.begin(); j!=sockets.end();)
+		    {
+			    if(getHostAddress(*j) == *i)
+                {
+                    j = sockets.erase(j);
+                    continue;
+                }
+                j++;
+		    }
+	    }
+        assert(nservers == servers.size());
+        assert(nservers == sockets.size());
       }
 
       /* compute timeout interval */
@@ -664,6 +711,28 @@ void MasterModule::run()
 void MasterModule::finish()
 {
   finished = true;
+}
+
+void MasterModule::change_layout_index(int from, int to)
+{
+    for(int x = 0; x<map_data.nregx; x++)
+    {
+        for(int y = 0; y<map_data.nregy; y++)
+        {
+            if(layout[x][y] == from) layout[x][y] = to;
+        }
+    }
+}
+
+void MasterModule::decrement_remaining_indecies(int start)
+{
+    for(int x = 0; x<map_data.nregx; x++)
+    {
+        for(int y = 0; y<map_data.nregy; y++)
+        {
+            if(layout[x][y] > start) layout[x][y] = layout[x][y]-1;
+        }
+    }
 }
 
 /***************************************************************************************************
@@ -705,8 +774,9 @@ bool MasterModule::logGameState()
     return false;
 
   /* write servers vector */
-  if ( fwrite(servers, sizeof(ConnectedServerInfo), map_data.num_servers, f)
-    != (size_t)map_data.num_servers ) return false;
+  //FIXME: Dont write to the log for now
+  //if ( fwrite(servers, sizeof(ConnectedServerInfo), map_data.num_servers, f)
+  //  != (size_t)map_data.num_servers ) return false;
 
   /* write quest data */
   int x;

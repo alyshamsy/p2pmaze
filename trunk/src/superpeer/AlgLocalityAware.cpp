@@ -502,6 +502,8 @@ bool AlgLocalityAware::balance()
 {
   int i,j;
 
+	printf("Rebalancing load: %d servers\n", nservers);
+
   /* initialize algorithm data */
   for ( i = 0; i < MAX_SERVERS; i++ )
     players_per_server[i] = servers[i].statistics.number_of_players;

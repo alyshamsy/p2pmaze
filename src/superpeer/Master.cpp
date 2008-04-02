@@ -243,7 +243,7 @@ int main( int argc, char *argv[] )
     }
     m->setLoadBalanceLimit(load_balance_limit);
     m->setCustomQuests(conf.getAttribute("quest.custom"));
-    m->setLogFile(log_file);
+    m->setLogHost(log_file);
 
     /* run the master module */
     SDL_Thread *master_thread = SDL_CreateThread(module_thread, (void*)m);

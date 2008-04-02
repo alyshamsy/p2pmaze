@@ -22,7 +22,11 @@
 #include <list>
 #include <map>
 #include <vector>
-using namespace std;
+#include <string>
+#include <sstream>
+#include <iostream>
+#include <sys/types.h>
+#include <sys/socket.h>
 
 /***************************************************************************************************
 *
@@ -36,7 +40,8 @@ class MasterModule : public Module
 protected:
   int port;   /* the port to listen for connections */
   bool finished;    /* flag to terminate the main loop */
-  char *log_file;   /* name of the file to write game state information */
+  std::string log_host;   /* host name and port of the game monitor */
+  int log_socket;
   MasterStatistics stats; /* migration statistics */
 
   /* list of connected hosts */
@@ -107,7 +112,7 @@ public:
   void finish();
 
   /* logging */
-  void setLogFile(char *file_name);
+  void setLogHost(const std::string& host);
   bool logMapData();
   bool logGameState();
 };

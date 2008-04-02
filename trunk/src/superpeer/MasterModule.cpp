@@ -15,9 +15,15 @@
 *    March - August 2007
 *
 ***************************************************************************************************/
-#include <assert.h>
+//#include <iostream>
+#include <cassert>
+#include <netinet/in.h>
+#include <netdb.h>
+
 #include "Master.h"
 #include "MasterModule.h"
+
+using namespace std;
 
 /***************************************************************************************************
 *
@@ -30,7 +36,6 @@ MasterModule::MasterModule(MapData &map_data, int port)
   /* init member variables */
   this->port = port;
   finished = false;
-  log_file = NULL;
   connected = 0;
   nservers = 0;
   memcpy(&this->map_data, &map_data, sizeof(MapData));
@@ -77,9 +82,6 @@ MasterModule::~MasterModule()
   delete[] layout;
   delete[] players_per_region;
   delete message_queue;
-
-  /* free memory from the log file name */
-  if ( log_file != NULL ) free(log_file);
 }
 
 /***************************************************************************************************
@@ -741,64 +743,108 @@ void MasterModule::decrement_remaining_indecies(int start)
 *
 ***************************************************************************************************/
 
-void MasterModule::setLogFile(char *file_name)
+void MasterModule::setLogHost(const std::string& hostname)
 {
-  if ( file_name == NULL ) return;
-  log_file = strdup(file_name);
-  if ( log_file == NULL ) printf("[WARNING] Not enough memory for log file name");
+  log_host = hostname;
+  if(log_host != "")
+    {
+      if(log_host.find(':', 0) == std::string::npos) throw "Wrong format for log server name";
+      std::string host = log_host.substr(0, log_host.find(':', 0));
+      std::string port = log_host.substr(log_host.find(':', 0)+1);
+      
+      log_socket = socket(PF_INET, SOCK_STREAM, 0);
+      if(log_socket == -1) throw "Could not create log socket";
+      struct sockaddr_in dest_addr;
+      struct hostent *he;
+      he=gethostbyname(host.c_str());
+	if(he == NULL)
+	  throw "Could not resolve log server's hostname";
+      
+      dest_addr.sin_family = AF_INET;
+      dest_addr.sin_port = htons(atoi(port.c_str()));
+      dest_addr.sin_addr = *((struct in_addr *)he->h_addr);
+      memset(dest_addr.sin_zero, '\0', sizeof dest_addr.sin_zero);
+      if(connect(log_socket, (struct sockaddr *)&dest_addr, sizeof dest_addr) == -1)
+	throw "Failed to connect to the log server";
+      printf("Connected to the log server\n");
+    }
+}
+
+static void sendall(int sock, const string& data)
+{
+  int bytes_sent = 0;
+  while(bytes_sent != data.length())
+    {
+      int ret = send(sock, data.c_str() + bytes_sent, data.length() - bytes_sent, 0);
+      if(ret == -1) throw "Could not send to the log server";
+      bytes_sent += ret;
+    }
 }
 
 bool MasterModule::logMapData()
 {
-  if ( log_file == NULL ) return false;
-
-  FILE *f = fopen(log_file, "wb");
-  if ( f == NULL ) return false;
-
-  if ( fwrite(&map_data, sizeof(MapData), 1, f) != 1 ) return false;
-
-  if ( fclose(f) != 0 ) return false;
+  if(log_host != "")
+    {
+      std::ostringstream out;
+      out << "dimensions " << map_data.nregx << " " << map_data.nregy << endl;
+      sendall(log_socket, out.str());
+    }
   return true;
 }
 
 bool MasterModule::logGameState()
 {
-  if ( log_file == NULL ) return false;
+  if(log_host == "") return true;
 
-  FILE *f = fopen(log_file, "ab");
-  if ( f == NULL ) return false;
-
-  /* write timestamp */
-  Uint32 timestamp = SDL_GetTicks();
-  if ( fwrite(&timestamp, sizeof(Uint32), 1, f) != 1 )
-    return false;
-
-  /* write servers vector */
-  //FIXME: Dont write to the log for now
-  //if ( fwrite(servers, sizeof(ConnectedServerInfo), map_data.num_servers, f)
-  //  != (size_t)map_data.num_servers ) return false;
-
-  /* write quest data */
-  int x;
-  x = quest.isActive();
-  if ( fwrite(&x, sizeof(int), 1, f) != 1 ) return false;
-  x = quest.getX();
-  if ( fwrite(&x, sizeof(int), 1, f) != 1 ) return false;
-  x = quest.getY();
-  if ( fwrite(&x, sizeof(int), 1, f) != 1 ) return false;
-
-  /* write master statistics */
-  if ( fwrite(&stats, sizeof(MasterStatistics), 1, f) != 1 ) return false;
-
-  /* write map data */
-  for ( int i = 0; i < map_data.nregx; i++ )
-    for ( int j = 0; j < map_data.nregy; j++ )
+  std::ostringstream out;
+  out << "begin"<<endl;
+  out << "servers " << nservers << endl;
+  for(int y = 0; y<map_data.nregy; y++)
     {
-      if ( fwrite(&layout[i][j], sizeof(int), 1, f) != 1 ) return false;
-      if ( fwrite(&players_per_region[i][j], sizeof(int), 1, f) != 1 ) return false;
+      for(int x = 0; x<map_data.nregx; x++)
+	{
+	  out << y*map_data.nregx + x << " " << layout[x][y] << " " << players_per_region[x][y] << endl;
+	}
     }
+  out << "end" << endl;
+  sendall(log_socket, out.str());
+  
+  // if ( log_file == NULL ) return false;
 
-  if ( fclose(f) != 0 ) return false;
+//   FILE *f = fopen(log_file, "ab");
+//   if ( f == NULL ) return false;
+
+//   /* write timestamp */
+//   Uint32 timestamp = SDL_GetTicks();
+//   if ( fwrite(&timestamp, sizeof(Uint32), 1, f) != 1 )
+//     return false;
+
+//   /* write servers vector */
+//   //FIXME: Dont write to the log for now
+//   //if ( fwrite(servers, sizeof(ConnectedServerInfo), map_data.num_servers, f)
+//   //  != (size_t)map_data.num_servers ) return false;
+
+//   /* write quest data */
+//   int x;
+//   x = quest.isActive();
+//   if ( fwrite(&x, sizeof(int), 1, f) != 1 ) return false;
+//   x = quest.getX();
+//   if ( fwrite(&x, sizeof(int), 1, f) != 1 ) return false;
+//   x = quest.getY();
+//   if ( fwrite(&x, sizeof(int), 1, f) != 1 ) return false;
+
+//   /* write master statistics */
+//   if ( fwrite(&stats, sizeof(MasterStatistics), 1, f) != 1 ) return false;
+
+//   /* write map data */
+//   for ( int i = 0; i < map_data.nregx; i++ )
+//     for ( int j = 0; j < map_data.nregy; j++ )
+//     {
+//       if ( fwrite(&layout[i][j], sizeof(int), 1, f) != 1 ) return false;
+//       if ( fwrite(&players_per_region[i][j], sizeof(int), 1, f) != 1 ) return false;
+//     }
+
+//   if ( fclose(f) != 0 ) return false;
   return true;
 }
 

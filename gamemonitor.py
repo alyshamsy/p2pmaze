@@ -9,24 +9,65 @@ ID_POLL_TIMER=100
 HTML_COLOURS = ['aqua', 'blue', 'fuchsia', 'gray', 'green', 'lime', 'maroon', 'olive', 'purple', \
                 'red', 'silver', 'teal', 'white','yellow']
 
-class ServerView(wx.html.HtmlWindow):
+class ServerView(wx.Notebook):
     def __init__(self, parent, client_name):
-        wx.html.HtmlWindow.__init__(self, parent)
+        wx.Notebook.__init__(self, parent)
         self.client_name = client_name
+        self.servers = wx.html.HtmlWindow(self)
+        self.load =  wx.html.HtmlWindow(self)
+        self.AddPage(self.servers, 'Servers')
+        self.AddPage(self.load, 'Load')
 
     def update(self, new_data):
+        self.update_servers(new_data)
+        self.update_load(new_data)
+
+    def update_servers(self, new_data):
         out = StringIO()
        
-        out.write('<html><body><table>')
+        out.write('<html><body><font size="2"><table width="100%">')
         for y in range(new_data.height):
-            out.write('<tr>')
+            out.write('<tr valign="center">')
             for x in range(new_data.width):
-                out.write('<td bgcolor=%s >(%d, %d)</td>' \
-                              %(HTML_COLOURS[new_data.region_info[x+new_data.width*y][0]], x,y))
+                out.write('<td bgcolor="%s" align="center">' % HTML_COLOURS[new_data.region_info[x+new_data.width*y][0]])
+                out.write('(%d, %d)<br />' %( x,y))
+                out.write('%d players' % new_data.region_info[x+new_data.width*y][1])
+                out.write('</td>')
                 
             out.write('</tr>')
-        out.write('</table></body></html>')
-        self.SetPage(out.getvalue())
+        out.write('</table></font></body></html>')
+        self.servers.SetPage(out.getvalue())
+        out.close()
+
+    def update_load(self, new_data):
+        out = StringIO()
+       
+        out.write('<html><body><font size="2"><table width="100%">')
+        players = reduce(lambda x,y: x+y, [info[1] for info in new_data.region_info])
+        red_percentage = 0.0
+        red = 0
+        green = 255
+        for y in range(new_data.height):
+            out.write('<tr valign="center">')
+            for x in range(new_data.width):
+                current_region = new_data.region_info[x+new_data.width*y]
+                if current_region[1] == 0:
+                    red_percentage = 0
+                    red = 0
+                    green = 255
+                else:
+                    red_percentage = float(current_region[1])/players
+                    red = int(red_percentage*255/2) + 128
+                    green = 255-int(red_percentage*255)
+                colour = '#%02x%02x00' % (red, green)
+                out.write('<td bgcolor="%s" align="center">' % colour)
+                out.write('(%d, %d)<br />' %( x,y))
+                out.write('%d players' % current_region[1])
+                out.write('</td>')
+                
+            out.write('</tr>')
+        out.write('</table></font></body></html>')
+        self.load.SetPage(out.getvalue())
         out.close()
         
 

@@ -15,7 +15,7 @@ class ServerView(wx.Notebook):
         self.client_name = client_name
         self.servers = wx.html.HtmlWindow(self)
         self.load =  wx.html.HtmlWindow(self)
-        self.AddPage(self.servers, 'Servers')
+        self.AddPage(self.servers, 'Peers')
         self.AddPage(self.load, 'Load')
 
     def update(self, new_data):

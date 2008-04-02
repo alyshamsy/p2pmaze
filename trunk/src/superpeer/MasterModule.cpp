@@ -435,7 +435,7 @@ void MasterModule::verifyQuest()
   int x,y;
 
   /* don't create any quest if not all servers are connected */
-  if ( nservers != map_data.num_servers ) return;
+  //if ( nservers != map_data.num_servers ) return;
 
   /* quest beginning / ending */
   if ( !quest.isActive() )
